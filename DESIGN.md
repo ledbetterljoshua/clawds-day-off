@@ -1,5 +1,7 @@
 # Clawd's Day Off: design + engine contract
 
+Status: all five evenings are built and merged. Chapter notes from their builders live in `notes/`.
+
 Read this whole file before writing code. It is the source of truth for the vision, the
 week, the characters, and the chapter contract every evening is built on.
 
