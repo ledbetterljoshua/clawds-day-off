@@ -96,6 +96,15 @@ R('match', o => {
   for (let i = 0; i < 4; i++) noise(.006, 'highpass', 5000, .03, .7, at(o, rnd(.1, .4)));
 });
 R('hiss', o => noise(.6, 'highpass', 4500, .065, .7, { ...at(o), attack: .02 }));
+// a senko sparkler's little pops
+R('crackle', o => { const n = 2 + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++) noise(.007, 'highpass', rnd(4000, 7000), rnd(.02, .045), .8, at(o, rnd(0, .09))); });
+// the glowing bead falling off: a soft tsk and a short fizz
+R('bead-drop', o => {
+  const k = o && o.soft ? .5 : 1;
+  noise(.05, 'bandpass', 2400, .05 * k, 1.2, at(o));
+  noise(.35, 'highpass', 5200, .03 * k, .7, { ...at(o, .03), attack: .01 });
+  tone(900, .12, 'sine', .02 * k, 300, at(o));
+});
 
 // ── outdoors ──
 R('creak', o => {

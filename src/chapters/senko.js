@@ -425,8 +425,7 @@ export default {
     S.onUp = () => endHold('pointer');
     addEventListener('blur', S.onBlur); addEventListener('pointerup', S.onUp); addEventListener('pointercancel', S.onUp);
     // the lanterns are dimmed for the sparklers; scene.onBeforeRender runs after sky.update and before lights are set up
-    S.dim = 1; S.dimTarget = 1; S.prevOBR = scene.onBeforeRender;
-    scene.onBeforeRender = (...a) => { S?.prevOBR?.(...a); const L = sky.lights?.lantern; if (S && L) L.intensity *= S.dim; };
+    S.dim = 1; S.dimTarget = 1;
     if (G.dev.has('day')) window.__senko = { get S() { return S; }, get P() { return P; } };
   },
   stations: {},
@@ -448,6 +447,7 @@ export default {
     if (S.hintFlashT > 0) S.hintFlashT -= dt;
     S.dimTarget = S.state === 'ending' ? .22 : S.state === 'intro' || S.state === 'gather' ? 1 : S.state === 'burning' ? .3 : .45;
     S.dim += (S.dimTarget - S.dim) * Math.min(1, dt * 1.2);
+    sky.lanternScale = S.dim;
     // sound: one crackle bed for all four, a softer one for the candle
     const lv = [S.mine, ...S.theirs].reduce((a, s, i) => a + (s.burning ? [.3, 1, .6, .25][Math.max(0, s.stage)] * (i ? .45 : 1) : 0), 0);
     const spark = Math.round(clamp(lv, 0, 1) * 20) / 20, candle = Math.round(P.lit * 10) / 10 * .5;
@@ -499,7 +499,7 @@ export default {
     ui.unmount();
     crew.forEach(c => { c.g.rotation.z = 0; c.lookAt(null); });
     world.screen.material.color.setScalar(1);
-    scene.onBeforeRender = S.prevOBR || function () {};
+    sky.lanternScale = 1;
     S = null; P = null;
   },
 

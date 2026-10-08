@@ -17,8 +17,13 @@ resize();
 post.init();
 
 let last = performance.now();
+let lastErr = 0;
 function frame(now) {
+  requestAnimationFrame(frame);
   const real = Math.min(.05, (now - last) / 1000); last = now;
+  try { step(real); } catch (e) { if (now - lastErr > 2000) { lastErr = now; console.error(e); } }
+}
+function step(real) {
   const dt = G.paused ? 0 : real * G.speed;
   G.time += dt;
   updateTweens(dt);
@@ -33,7 +38,6 @@ function frame(now) {
   audio.update(dt);
   post.render();
   game.afterRender();
-  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 game.boot();

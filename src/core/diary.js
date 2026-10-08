@@ -66,7 +66,7 @@ export const diary = {
     ov.innerHTML = `
       <div class="cover">
         <div class="cv-kicker">なつやすみ えにっき <span>summer picture diary</span></div>
-        <div class="cv-band">${PIX}<h1>Clawd's Day Off</h1><div class="cv-sub">five summer evenings on a balcony</div></div>
+        <div class="cv-band">${PIX}<h1>Clawd's Day Off</h1><div class="cv-sub">${chapters.every(c => save.day(c.id)?.done) ? 'summer, written down ✦' : 'five summer evenings on a balcony'}</div></div>
         <div class="cv-week">${chapters.map(c => { const e = save.day(c.id); return `<div class="cv-day ${e?.done ? 'done' : ''}" title="${esc(c.title)}"><b>${esc(c.short || c.jp)}</b><span>${esc(c.title)}</span>${e?.done ? stampSVG(e.stamp) : ''}</div>`; }).join('')}</div>
         <div class="cv-name"><span>なまえ</span> クロード · Clawd</div>
         <div class="cv-actions">
@@ -93,7 +93,7 @@ export const diary = {
   renderWeek() {
     const L = $('#pgL', ov); if (!L) return;
     const all = chapters.every(c => save.day(c.id)?.done);
-    L.innerHTML = `<div class="pg-head"><span class="pg-kicker">なつやすみ えにっき</span><h2>${all ? 'Clawd\'s summer ✦' : 'Clawd\'s week'}</h2>${all ? '<p class="pg-done">five evenings, all written down. thank you for spending them here.</p>' : ''}</div>
+    L.innerHTML = `<div class="pg-head"><span class="pg-kicker">なつやすみ えにっき</span><h2>${all ? 'Clawd\'s summer ✦' : 'Clawd\'s week'}</h2>${all ? `<p class="pg-done">five evenings, all written down. thank you for spending them here.</p><div class="strip">${chapters.map(c => { const p = save.day(c.id)?.photo; return p ? `<img src="${p}" alt="${esc(c.title)}">` : '<span></span>'; }).join('')}</div>` : ''}</div>
       <ol class="week">${chapters.map((c, i) => {
         const e = save.day(c.id), dt = dateOf(c), open = diary.unlocked(c);
         return `<li><button class="wk ${selected === c ? 'sel' : ''} ${open ? '' : 'locked'}" data-i="${i}" ${open ? '' : 'disabled'}>

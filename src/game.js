@@ -251,6 +251,8 @@ function playerInteract(k) {
   if (k === 'laptop' && !(def.stations && G.stations.laptop)) { clawd.faceOverride = -2.0; term.open(); setTimeout(() => clawd.faceOverride = null, 1200); return; }
   def.interact && def.interact(k, game);
 }
+hud.onCard = h => { if (G.chapter?.delegation === false) return; select(G.selected === h ? null : h); };
+
 function select(h) {
   G.selected = h; helpers.forEach(x => x.sel.visible = x === h);
   if (h) { h.wake(); h.say(h.job ? `on ${jobDef(h.job)?.label || h.job} — reassign?` : 'awaiting instructions…', 1.8); audio.sfx('select'); }
@@ -292,7 +294,7 @@ initInput({
     if (e.code === 'Space') { e.preventDefault(); G.mini && G.mini.act(); return; }
     if (e.key === 'Escape') { mini.close(true); select(null); return; }
     if (e.key === '/' || e.key === '`') { e.preventDefault(); term.open(); return; }
-    if (['1', '2', '3'].includes(e.key) && G.chapter.delegation !== false) { const h = helpers[+e.key - 1]; if (h.g.visible) select(G.selected === h ? null : h); return; }
+    if (['1', '2', '3'].includes(e.key) && !e.repeat && G.chapter.delegation !== false) { const h = helpers[+e.key - 1]; if (h.g.visible) select(G.selected === h ? null : h); return; }
     if (e.key === 'p' || e.key === 'P') { takePolaroid(); return; }
     if (e.key === 'm' || e.key === 'M') { const m = audio.mute(); hud.toast(m ? 'sound off' : 'sound on', { dur: 1.2 }); syncMute(); return; }
     if (e.key === 'e' || e.key === 'E' || e.key === 'Enter') {
@@ -361,13 +363,15 @@ function update(dt) {
   const suggest = G.mode === 'play' && def?.highlight ? def.highlight() : null;
   for (const k in rings) {
     const r = rings[k], s = G.stations[k];
-    const show = G.mode === 'play' && (hover?.station === k || (G.selected && s?.job && !jobDone(s.job)) || (suggest && suggest.includes(k)));
+    const takeable = G.selected && s?.job && !jobDone(s.job) && jobDef(s.job)?.canAssign?.(G.selected) !== false;
+    const show = G.mode === 'play' && (hover?.station === k || takeable || (suggest && suggest.includes(k)));
     r.visible = !!show;
     if (show) { const [x, z, sc = 1] = ringOf(k); r.position.set(x, .012, z); r.scale.setScalar(sc); r.material.opacity = (hover?.station === k ? .85 : .35) + Math.sin(G.time * 5) * .12; }
   }
 }
 
 function statsLine(result) {
+  if (G.chapter?.stats) return G.chapter.stats(result);
   const s = G.stats;
   return `${result.complete ? 'finished' : 'night fell'} at ${hud.clockText(G.endPhase ?? G.phase)} · you ${s.tasksYou} tasks · helpers ${s.tasksHelpers} · ${s.deleg} delegations`;
 }

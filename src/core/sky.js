@@ -370,6 +370,8 @@ let drift = 0, flashT = 0, lastRain = -1;
 const moonDir = new V3(), lightDir = new V3();
 
 export const sky = {
+  lanternScale: 1,        // chapters can dim the lantern string (sparklers want the dark)
+  rendersStarPair: true,  // the dome draws Vega and Altair from starPair
   lights: { key, hemi, rim, lantern, lanterns },
   clouds: [], cloudMat, skyMat, dome,
   sunDir: new V3(),
@@ -450,8 +452,9 @@ export const sky = {
     c.color.copy(Pl.city);
     c.emissiveIntensity = Math.max(smooth(.62, .95, p), moonOn) * Pl.cityLit * (1 - .3 * o);
     const glow = Math.max(smooth(.6, .95, p), moonOn);
-    world.lanternMats.forEach(m => m.emissiveIntensity = .05 + glow * .8);
-    const li = smooth(.65, 1, Math.max(p, moonOn)) * (lanterns.length > 1 ? 9 : 14);
+    const ls = sky.lanternScale ?? 1;
+    world.lanternMats.forEach(m => m.emissiveIntensity = (.05 + glow * .8) * (.35 + .65 * ls));
+    const li = smooth(.65, 1, Math.max(p, moonOn)) * (lanterns.length > 1 ? 9 : 14) * ls;
     for (const l of lanterns) {
       l.intensity = li;
       if (G.flash > 0) { l.color.copy(G.flashCol); l.intensity += G.flash * (lanterns.length > 1 ? 12 : 20); }

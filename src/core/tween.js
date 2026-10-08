@@ -22,9 +22,9 @@ export function updateTweens(dt) {
     if (T.dead) { list.splice(i, 1); continue; }
     T.t += dt;
     const e = Math.min(1, T.t / T.dur);
-    T.fn(e, T);
+    try { T.fn(e, T); } catch (err) { console.error(err); T.dead = true; continue; }
     if (T.dead) { list.splice(i, 1); continue; }
-    if (e >= 1) { list.splice(i, 1); T.done && T.done(); }
+    if (e >= 1) { list.splice(i, 1); try { T.done && T.done(); } catch (err) { console.error(err); } }
   }
 }
 
