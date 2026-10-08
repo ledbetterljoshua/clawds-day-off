@@ -16,6 +16,7 @@ import { diary } from './core/diary.js';
 import { save } from './core/save.js';
 import { mini } from './core/minigames.js';
 import { settings } from './core/settings.js';
+import { award, setStickerToast } from './core/stickers.js';
 import { firework, sparkle, puff } from './core/fx.js';
 import { initInput, setHits, held, pointer } from './core/input.js';
 import { CHAPTERS } from './chapters/index.js';
@@ -34,6 +35,7 @@ export const game = {
     applySettings();
     settings.init();
     diary.init(CHAPTERS, def => game.run(def));
+    setStickerToast(html => hud.toast(html, { dur: 3 }));
     clawd.reset({ x: -6.8, z: .55, face: -2.0 }); clawd.faceOverride = -2.0;
     helpers.forEach(h => h.reset({ visible: false }));
     const d = +G.dev.get('day');
@@ -93,7 +95,14 @@ export const game = {
     const text = def.diary ? def.diary(result, G.stats) : { jp: '', lines: [] };
     const stamp = result.stamp || (result.complete ? (result.perfect ? 'perfect' : 'good') : 'tried');
     helpers.forEach((h, i) => { const m = save.data.helpers[i]; m.tasks += G.stats.byHelper[i]; m.days += 1; });
+    if (!result.quit) {
+      if (result.complete && G.stats.deleg === 0 && def.delegation !== false) award('diy');
+      if (result.complete && G.stats.tasksYou === 0 && G.stats.tasksHelpers > 0) award('manager');
+      if (result.night) award('nightowl');
+      if (stamp === 'perfect') award('perfect');
+    }
     save.setDay(def.id, { done: true, complete: !!result.complete, stamp, photo, text, stats: statsLine(result), at: Date.now(), ...(G.polaroid ? { polaroid: G.polaroid } : {}) });
+    if (CHAPTERS.every(c => save.day(c.id)?.done)) award('week');
     await sleep(.6);
     if (my !== runId) return;
     audio.setMood('quiet');
@@ -310,6 +319,7 @@ async function takePolaroid() {
   audio.sfx('shutter');
   G.polaroid = await game.capture();
   hud.toast('📷 taped into tonight\'s diary page', { dur: 2 });
+  award('polaroid');
 }
 audio.register('shutter', () => { audio.noise(.05, 'highpass', 3000, .25); audio.noise(.08, 'bandpass', 1200, .15, 1, { delay: .07 }); });
 $('#cam').onclick = e => { e.stopPropagation(); takePolaroid(); };
@@ -333,6 +343,7 @@ function update(dt) {
     wasWalking = L || R;
     if (clawd.pending && clawd.arrived()) { const k = clawd.pending; clawd.pending = null; playerInteract(k); }
     runChatter();
+    if (helpers.filter(h => h.action).length >= 3) award('parallel');
     if (def.delegation !== false) helpers.forEach(h => h.g.visible && helperTick(h, dt));
     if (G.mini) { G.stats.you += dt; G.mini.update(dt); }
   }
@@ -406,7 +417,7 @@ R('/agents', () => helpers.map((h, i) => {
 R('/tasks', () => G.chapter?.todo ? G.chapter.todo().map(r => ({ t: `${r.done ? '✓' : '☐'} ${r.label}`, c: r.done ? '#7bd88f' : '#e8e2da' })) : 'no tasks tonight. just the sky.', 'tonight\'s todo list');
 R('/todo', a => term.run('/tasks'), '', { hidden: true });
 R('/effort', a => {
-  if ((a[0] || '') === 'max') { G.effort = 30; crew.forEach(c => c.g.visible && c.hop(.5)); return { t: 'effort set to max for 30s. everyone moves 1.5× faster. (it\'s still a day off.)', c: '#f2c14e' }; }
+  if ((a[0] || '') === 'max') { award('effort'); G.effort = 30; crew.forEach(c => c.g.visible && c.hop(.5)); return { t: 'effort set to max for 30s. everyone moves 1.5× faster. (it\'s still a day off.)', c: '#f2c14e' }; }
   return 'usage: /effort max';
 }, 'try: /effort max');
 R('/model', () => 'you are talking to clawd. it has always been clawd.', 'which model is this');
@@ -447,12 +458,12 @@ R('ping', () => 'pong ✦', '', { hidden: true });
 R('claude', () => 'you\'re already here.', '', { hidden: true });
 R('ultrathink', () => { clawd.say('…', 1.5); setTimeout(() => clawd.say('…kakigōri.', 2), 1500); return 'thinking very hard…'; }, '', { hidden: true });
 R('fortune', () => pick(HAIKU), 'a summer haiku');
-R('crabsay', a => crabsay(a.join(' ') || 'day off ✦'), 'like cowsay');
+R('crabsay', a => (award('crabsay'), crabsay)(a.join(' ') || 'day off ✦'), 'like cowsay');
 R('cowsay', a => crabsay(a.join(' ') || 'moo? no. day off.'), '', { hidden: true });
-R('hanabi', () => { if (G.mode !== 'play' && G.mode !== 'ending') return 'not now'; firework({ y: rand(16, 26) }); return 'たまや〜!'; }, 'launch a firework');
+R('hanabi', () => { if (G.mode !== 'play' && G.mode !== 'ending') return 'not now'; firework({ y: rand(16, 26) }); award('hanabi'); return 'たまや〜!'; }, 'launch a firework');
 R('fireworks', () => term.run('hanabi'), '', { hidden: true });
 R('tamaya', () => { helpers.forEach((h, i) => h.g.visible && setTimeout(() => h.say('かぎや〜!', 1.8), i * 200)); return 'たまや〜!'; }, '', { hidden: true });
-R('sl', () => { trainPass(); return '🚃 …gatan goton… gatan goton…'; }, 'steam locomotive');
+R('sl', () => { award('train'); trainPass(); return '🚃 …gatan goton… gatan goton…'; }, 'steam locomotive');
 R('/skip', () => { if (G.mode === 'play') game.finish({ complete: G.chapter?.ready?.() ?? false }); return 'skipping to the end of the evening'; }, '', { hidden: true });
 R('/speed', a => { G.speed = clamp(+a[0] || 1, .25, 8); return `time scale ${G.speed}×`; }, '', { hidden: true });
 

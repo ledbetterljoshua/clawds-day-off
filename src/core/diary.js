@@ -6,6 +6,7 @@ import { renderer } from './gfx.js';
 import { save } from './save.js';
 import { audio } from './audio.js';
 import { cam } from './camera.js';
+import { stickersHTML } from './stickers.js';
 import { clawd } from './crab.js';
 
 const ov = $('#overlay');
@@ -100,6 +101,7 @@ export const diary = {
           <span class="wk-state">${e?.done ? (e.photo ? `<img class="wk-thumb" src="${e.photo}" alt="">` : '') + stampSVG(e.stamp) : open ? `<span class="wk-next">${c === diary.nextDay() ? 'tonight' : 'open'}</span>` : '🔒'}</span></button></li>`;
       }).join('')}</ol>
       ${crewHTML()}
+      ${stickersHTML()}
       <div class="pg-foot"><button class="ghost" id="cover">cover</button><span class="credit">${CREDIT}</span></div>`;
     $$('.wk', L).forEach(b => b.onclick = () => { selected = chapters[+b.dataset.i]; diary.renderWeek(); diary.renderPage(selected); audio.sfx('select'); });
     $('#cover', L).onclick = () => diary.showTitle();

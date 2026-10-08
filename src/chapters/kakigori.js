@@ -13,6 +13,7 @@ import { term } from '../core/terminal.js';
 import { cam } from '../core/camera.js';
 import { Particles, firework, sparkle, puff } from '../core/fx.js';
 import { world } from '../core/world.js';
+import { award } from '../core/stickers.js';
 
 const COLORS = { red: '#e8384c', green: '#40c25c', blue: '#3d8fe3' };
 const FLAVOR = { red: 'ichigo', green: 'melon', blue: 'blue hawaii' };
@@ -356,7 +357,7 @@ function interact(k, game) {
       return game.work('rack', () => mini.pour({
         title: `pour <span style="color:${COLORS[c]}">${FLAVOR[c]}</span>`, color: COLORS[c], start,
         onFill(f, holding) { S.syr[c] = Math.min(f, 1); S.pouring = holding ? c : null; clawd.workAnim = holding ? 'pour' : null; if (holding) audio.sfx('pour', { gap: .12 }); },
-        onRelease(f, q) { G.stats.quality.push(q); S.syr[c] = clamp(f, .45, 1); S.pouring = null; onPoured(clawd, c, q); if (q === 1) sparkle(P.bowl.position.x, 1.8, P.bowl.position.z, 16); },
+        onRelease(f, q) { if (q === 1) award('pour'); G.stats.quality.push(q); S.syr[c] = clamp(f, .45, 1); S.pouring = null; onPoured(clawd, c, q); if (q === 1) sparkle(P.bowl.position.x, 1.8, P.bowl.position.z, 16); },
         onClose(cancelled) { S.pouring = null; if (cancelled && !S.syrOk[c]) S.syr[c] = start; },
       }));
     }
@@ -405,7 +406,7 @@ async function ending(result, game) {
     fwT -= G.time - last; last = G.time;
     if (!clawdDone && e > .42) {
       clawdDone = true; firework({ type: 'clawd', x: bx, y: 24, z: -85, size: 1.1 });
-      tween(2.0, () => {}, () => { game.snap(); helpers.forEach((h, i) => tween(.2 * i, () => {}, () => { h.say('!!', 1.5); h.mood('wow', 1.5); })); });
+      tween(2.0, () => {}, () => { game.snap(); award('clawdfw'); helpers.forEach((h, i) => tween(.2 * i, () => {}, () => { h.say('!!', 1.5); h.mood('wow', 1.5); })); });
       fwT = 3.2;
     }
     if (fwT <= 0) { fwT = e > .8 ? rand(.2, .45) : rand(.5, 1.1); firework({ x: bx + rand(-38, 38) }); if (Math.random() < .3) tween(.18, () => {}, () => firework({ x: bx + rand(-38, 38) })); }

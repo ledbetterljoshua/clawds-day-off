@@ -6,7 +6,7 @@
 //   { x, wait }      walk to x and wait (wait is the status/bubble text)
 //   null             nothing to do right now
 // An action is { kind, verb, anim?, face?, lock?, step(dt) -> true when finished, cancel?() }.
-import { G } from './state.js';
+import { G, emit } from './state.js';
 import { helpers, clawd } from './crab.js';
 import { term } from './terminal.js';
 import { audio } from './audio.js';
@@ -57,6 +57,7 @@ export function assign(h, stationKey) {
   const label = J.label || job;
   h.say(`on it ▸ ${label}${isSpec(h, job) ? ' ✦' : ''}`, 2); h.mood('happy', .8); h.hop(.3);
   term.log(`> ${h.name}: ${label}`, '#d97757');
+  emit('sticker', 'delegate');
   audio.sfx('pop');
   return true;
 }
