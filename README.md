@@ -1,26 +1,36 @@
-# Clawd's Day Off — ch. 1: kakigōri
+# Clawd's Day Off
 
-A playable version of **[“Claude's day off 🏝️”](https://x.com/ishuagra02/status/2107488996490166538)**,
+A playable fan game of **[“Claude's day off 🏝️”](https://x.com/ishuagra02/status/2107488996490166538)**,
 the short film by **Ishu Agrawal ([@ishuagra02](https://x.com/ishuagra02))**, animated by Opus 5.5
 (end card: *Clawd's Kakigōri — a summer evening, made in code*). All the charm is theirs; this is fan work.
 
-Clawd pushes, tests pass, done for today. `make kakigōri for four` spawns three helpers,
-and the evening becomes a tiny cooking game about delegation:
+Clawd finishes work, types a prompt, spawns three helpers, and spends five summer evenings on a
+balcony: kakigōri, takoyaki, nagashi-sōmen, tanabata, and a last senkō hanabi. Every evening you can
+do each job yourself (a small hands-on minigame) or delegate it: click a helper, then a station, and
+it works that job until it's done. The week is kept as a なつやすみ えにっき, a summer picture diary.
 
-- **Do it yourself** — click a station and play its minigame (crank the shaver in circles,
-  time three strawberry cuts, release a syrup pour inside the band, hold to pick mint).
-- **Delegate** — click a helper (or its card / press 1–3), then a station. Helpers stay on a
-  job until it's done; specialists (🍓 strawberry, 🌿 mint+syrups, 🧊 ice) work twice as fast.
-- The sun is the clock. At 7:45 the fireworks start whether you're done or not. Nobody loses.
+## Run it
 
-Open `index.html` (single file, three.js from jsDelivr). Keys: A/D walk, E interact,
-Space minigame, 1–3 select helper, Esc cancel, M mute.
+```
+python3 tools/serve.py 4388     # no-cache static server
+open http://localhost:4388/
+```
 
-Debug: `__G.speed = 4` fast-forwards; `__dbg.assign(__dbg.helpers[2], 'shaver')`.
+No build step: ES modules + three.js r160 from jsDelivr. Everything else is made in code.
+
+**Controls:** click a station to go work it · click a helper (or its card, or 1–3), then a station,
+to delegate · A/D walk · E interact · Space minigames · `/` opens the terminal (try `/help`,
+`h3 shave ice`, `/effort max`, `sl`, `hanabi`, `crabsay`) · M mute · Esc cancel.
+
+**Dev params:** `?day=N` jump to a day · `&skip` skip the intro · `&speed=4` · `&phase=0.7` pin the
+sky clock · `&all` unlock every day · `&nosave` don't write progress.
+
+See [DESIGN.md](DESIGN.md) for the vision, the week, and the chapter contract.
+`legacy/v1.html` is the original single-file prototype.
 
 ## Credits
 
-- Original film and every idea worth having here: **Ishu Agrawal** — [@ishuagra02](https://x.com/ishuagra02),
-  [“Claude's day off”](https://x.com/ishuagra02/status/2107488996490166538)
+- Original film and every idea worth having here: **Ishu Agrawal**,
+  [@ishuagra02](https://x.com/ishuagra02), [“Claude's day off”](https://x.com/ishuagra02/status/2107488996490166538)
 - Game: Joshua Ledbetter, built with Claude
 - Unofficial fan project. Clawd is Anthropic's Claude Code mascot; not affiliated with or endorsed by Anthropic.
