@@ -2,7 +2,7 @@
 // as it flows past. Two stages: build (five prep jobs), then flow (everyone catches along the run).
 import { THREE, V3, mesh, group, box, rbox, cyl, sph, toon, canvasTex, MAT, hitMat, dotTex } from '../core/gfx.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { G } from '../core/state.js';
+import { G, emit } from '../core/state.js';
 import { rand, randi, clamp, lerp, ease, easeOutBack, smooth, pick } from '../core/util.js';
 import { tween, sleep } from '../core/tween.js';
 import { clawd, helpers, crew } from '../core/crab.js';
@@ -574,6 +574,7 @@ function eat(c) {
 }
 function onPink(c) {
   S.pinkBy = c;
+  if (c === clawd) emit('sticker', 'pink');
   const p = new V3(); c.g.getWorldPosition(p);
   sparkle(p.x, p.y + c.height + .2, p.z, 28, [1, .5, .75]);
   hud.toast(`✿ ${c === clawd ? 'you' : c.name} caught the pink noodle!`, { dur: 3 });

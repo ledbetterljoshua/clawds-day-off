@@ -119,6 +119,11 @@ function updateBursts(dt) {
   }
 }
 
+// dispose every particle system that lives under `root` (the runner calls this on teardown)
+export function disposeUnder(root) {
+  for (const s of [...systems]) { let o = s.points; while (o && o !== root) o = o.parent; if (o === root) s.dispose(); }
+}
+
 export function updateFx(dt) {
   systems.forEach(s => s.update(dt));
   updateBursts(dt);

@@ -17,7 +17,7 @@ import { save } from './core/save.js';
 import { mini } from './core/minigames.js';
 import { settings } from './core/settings.js';
 import { award, setStickerToast } from './core/stickers.js';
-import { firework, sparkle, puff } from './core/fx.js';
+import { firework, sparkle, puff, disposeUnder } from './core/fx.js';
 import { initInput, setHits, held, pointer } from './core/input.js';
 import { CHAPTERS } from './chapters/index.js';
 
@@ -358,9 +358,10 @@ function update(dt) {
   }
   if (def && def.update) { try { def.update(dt, game); } catch (e) { console.error(e); } }
   // station rings: hovered station, or every open job while a helper is selected
+  const suggest = G.mode === 'play' && def?.highlight ? def.highlight() : null;
   for (const k in rings) {
     const r = rings[k], s = G.stations[k];
-    const show = G.mode === 'play' && (hover?.station === k || (G.selected && s?.job && !jobDone(s.job)));
+    const show = G.mode === 'play' && (hover?.station === k || (G.selected && s?.job && !jobDone(s.job)) || (suggest && suggest.includes(k)));
     r.visible = !!show;
     if (show) { const [x, z, sc = 1] = ringOf(k); r.position.set(x, .012, z); r.scale.setScalar(sc); r.material.opacity = (hover?.station === k ? .85 : .35) + Math.sin(G.time * 5) * .12; }
   }
@@ -381,6 +382,7 @@ function teardown() {
   audio.stopLoops && audio.stopLoops();
   chapterCmds.forEach(k => term.unregister(k)); chapterCmds = [];
   if (root) {
+    disposeUnder(root);
     scene.remove(root);
     root.traverse(o => { if (o.isMesh || o.isPoints) { o.geometry?.dispose?.(); } });
     root = null;

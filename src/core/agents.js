@@ -75,7 +75,7 @@ export function helperTick(h, dt) {
     return;
   }
   h.waitMsg = '';
-  if (!h.job) { idleWander(h, dt); return; }
+  if (!h.job) { h.lastWait = null; idleWander(h, dt); return; }
   const J = jobDef(h.job);
   if (!J || jobDone(h.job)) {
     if (J) term.log(`✓ ${h.name} finished: ${J.label || h.job}`, '#7bd88f');
@@ -89,7 +89,7 @@ export function helperTick(h, dt) {
   if (s.x != null) h.targetX = clamp(s.x, -9.8, 9.8);
   if (s.wait) {
     h.waitMsg = s.wait;
-    if (h.arrived() && h.lastSay !== s.wait && h.bubT <= 0) h.say(s.wait, 2);
+    if (!s.quiet && h.arrived() && h.lastWait !== s.wait && h.bubT <= 0) { h.lastWait = s.wait; h.say(s.wait, 2); }
     return;
   }
   if (h.arrived() && s.start) {

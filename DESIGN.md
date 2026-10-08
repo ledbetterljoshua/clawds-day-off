@@ -151,7 +151,7 @@ src/chapters/   one file per evening + index.js
 - The play camera frames x ∈ [-10, 10] on landscape screens and follows Clawd on portrait
   phones. Keep the important action between y = 0 and y = 3.5.
 - Clawd is ~1.2 units tall; helpers ~0.75.
-- Put everything a chapter builds in the `root` group passed to `setup`. The runner removes it.
+- Put everything a chapter builds in the `root` group passed to `setup`. The runner removes it, and disposes any `Particles` parented under it.
 
 ### The frame
 
@@ -191,6 +191,7 @@ export default {
   jobs: { pan: { label:'turn the balls', done: () => bool, plan(h, sp) {...}, release(h) {}, canAssign(h) {} } },
   interact(key, game) {},        // Clawd walked to a station and wants to work it (open a minigame here)
   redirect: key => key,          // optional: map a clicked station to another
+  highlight: () => ['pan'],      // optional: station keys whose rings pulse right now (suggest the next step)
   ready: () => bool,             // optional: "can serve" (for /skip and hints)
   todo: () => [{ label, done, detail /* html */, workers:[str], blocked }],
   hint: () => 'contextual hint line',
@@ -219,7 +220,7 @@ A helper assigned to a job calls `plan(h, sp)` every frame until `done()`. `sp` 
 multiplier (2 for a specialist, ×1.5 under `/effort max`). Return:
 
 - `{ x, start() }`: walk to x, then `start()` returns an **action** or `null` (try again next frame).
-- `{ x, wait: 'status text' }`: walk to x and wait (shown on its card and in a bubble).
+- `{ x, wait: 'status text', quiet? }`: walk to x and wait (shown on its card, and once in a bubble unless `quiet`).
 - `null`: nothing to do.
 
 An action is `{ kind, verb, anim?, face?, lock?, step(dt) → true when finished, cancel?() }`.

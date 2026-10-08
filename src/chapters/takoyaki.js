@@ -2,7 +2,7 @@
 // most of them come due at once, and a sudden evening shower (夕立) arrives mid-cook.
 // Then sauce, a drawn mayo zigzag, aonori, dancing katsuobushi, and a basket to the neighbor on 3F.
 import { THREE, V3, mesh, box, hitMat, toScreen } from '../core/gfx.js';
-import { G } from '../core/state.js';
+import { G, emit } from '../core/state.js';
 import { $, rand, clamp, lerp, ease, easeOut, smooth, pick } from '../core/util.js';
 import { tween, sleep } from '../core/tween.js';
 import { clawd, helpers, crew } from '../core/crab.js';
@@ -203,7 +203,7 @@ function sendBasket(who) {
           audio.loop('creak', 1);
           tween(3.2, e => { g.position.y = lerp(12, .12, ease(e)); }, () => {
             audio.loop('creak', 0); audio.sfx('clunk');
-            S.basket = 'returned';
+            S.basket = 'returned'; emit('sticker', 'basket');
             hud.toast('<b>📝 from 3F</b> 「ありがとう!」 <span style="color:var(--dim)">and a cold ramune</span>');
             term.log('✓ the basket came back with a ramune', '#7bd88f');
             clawd.say('a ramune came back down ✦', 2.6); clawd.hop(.5);
@@ -457,7 +457,7 @@ function interact(k, game) {
         onDone() { openUmbrella(clawd); },
       }));
     case 'plate': {
-      if (ready()) return game.finish({ complete: true, perfect: S.perfect >= 24 && S.crispy === 0 });
+      if (ready()) { if (S.perfect >= 32 && S.crispy === 0) emit('sticker', 'golden'); return game.finish({ complete: true, perfect: S.perfect >= 24 && S.crispy === 0 }); }
       if (S.plated < 16) {
         const todo = S.balls.filter(b => b.done && !b.plated && !b.claimPlate);
         if (!todo.length) return clawd.say(S.poured ? 'nothing\'s round enough to plate yet' : 'no takoyaki yet');
