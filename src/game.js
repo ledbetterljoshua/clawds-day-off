@@ -371,6 +371,7 @@ function teardown() {
     helpers.forEach(h => { cancelAction(h); h.job = null; });
   }
   mini.close(true); select(null); term.close();
+  audio.stopLoops && audio.stopLoops();
   chapterCmds.forEach(k => term.unregister(k)); chapterCmds = [];
   if (root) {
     scene.remove(root);
@@ -493,6 +494,3 @@ function trainPass() {
   tween(16, e => { g.position.x = -200 + e * 400; }, () => scene.remove(g));
 }
 game.trainPass = trainPass;
-audio.register('crossing', () => {
-  for (let i = 0; i < 10; i++) { audio.tone(740, .18, 'square', .012, null, { delay: i * .62, bus: 'amb' }); audio.tone(880, .18, 'square', .01, null, { delay: i * .62 + .31, bus: 'amb' }); }
-});

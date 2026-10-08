@@ -141,4 +141,3 @@ export const diary = {
   },
 };
 
-audio.register('stamp', () => { audio.noise(.12, 'lowpass', 500, .5); audio.tone(110, .15, 'sine', .2, 70); });
