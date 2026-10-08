@@ -6,6 +6,7 @@ import { renderer } from './gfx.js';
 import { save } from './save.js';
 import { audio } from './audio.js';
 import { cam } from './camera.js';
+import { sky } from './sky.js';
 import { stickersHTML } from './stickers.js';
 import { clawd } from './crab.js';
 
@@ -59,7 +60,7 @@ export const diary = {
   showTitle() {
     G.mode = 'title';
     cam.play(); cam.drift = 1;
-    if (!G.chapter) { clawd.workAnim = 'write'; clawd.faceOverride = -2.0; }
+    if (!G.chapter) { clawd.workAnim = 'write'; clawd.faceOverride = -2.0; G.phase = .52; sky.setPreset('clear'); }
     const next = diary.nextDay(), started = Object.keys(save.data.days).length > 0;
     ov.className = 'title-view';
     ov.innerHTML = `

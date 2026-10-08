@@ -158,8 +158,10 @@ async function intro(def, my) {
     if (t.startsWith('$')) await term.typeLine(t, c || '#e8e2da'); else { term.log(t, c || '#e8e2da'); audio.sfx('pop'); }
     await sleep(.4);
   }
-  clawd.mood('happy', 1.5); clawd.hop(.6);
-  if (!skip.skip) await sleep(1);
+  // a stretch after closing the work for the day
+  clawd.mood('happy', 1.8); clawd.workAnim = 'cheer'; clawd.faceOverride = .3;
+  if (!skip.skip) { await sleep(1.1); clawd.say('ahh ✦', 1.2); await sleep(.5); }
+  clawd.workAnim = null; clawd.faceOverride = -2.0;
   term.log('> ', '#d97757');
   if (!skip.skip) {
     clawd.say('press enter ↵ (or tap)', 99);
