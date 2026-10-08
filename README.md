@@ -9,6 +9,8 @@ balcony: kakigōri, takoyaki, nagashi-sōmen, tanabata, and a last senkō hanabi
 do each job yourself (a small hands-on minigame) or delegate it: click a helper, then a station, and
 it works that job until it's done. The week is kept as a なつやすみ えにっき, a summer picture diary.
 
+**▶ Play it: <https://ledbetterljoshua.github.io/clawds-day-off/>** (best with sound; works on phones)
+
 ## Run it
 
 ```
