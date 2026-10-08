@@ -2,7 +2,7 @@
 // table, write a wish on a tanzaku strip. At night the helpers write theirs, and Orihime and
 // Hikoboshi meet across the Milky Way.
 import { THREE, V3, mesh, group, box, toon, canvasTex, MAT, dotTex } from '../core/gfx.js';
-import { G } from '../core/state.js';
+import { G, emit } from '../core/state.js';
 import { rand, clamp, lerp, ease, easeOut, easeOutBack, smooth, pick } from '../core/util.js';
 import { tween, sleep, until } from '../core/tween.js';
 import { clawd, helpers, crew } from '../core/crab.js';
@@ -155,6 +155,7 @@ async function writePlayerWish({ ending = false } = {}) {
 function setWish(text, color) {
   S.wish = { text, color };
   try { save.data.wishes.push({ day: 4, text, color: color.en, at: Date.now() }); save.write(); } catch (e) { console.warn(e); }
+  emit('sticker', 'wish');
   term.log(`$ echo "${text}" > tanzaku.txt`, '#e8e2da');
   hangWish(text, color, FROM.wish);
   credit(clawd); G.stats.quality.push(1);

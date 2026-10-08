@@ -1,7 +1,7 @@
 // Day 5 — Senkō hanabi (線香花火). The finale: no jobs, no clock. Four sparklers, one candle,
 // three rounds. Hold Clawd's sparkler still and let the bead hang through the four stages.
 import { V3, camera, scene } from '../core/gfx.js';
-import { G } from '../core/state.js';
+import { G, emit } from '../core/state.js';
 import { rand, clamp, lerp, ease, smooth, pick, isTouch } from '../core/util.js';
 import { tween, sleep, until } from '../core/tween.js';
 import { clawd, helpers, crew } from '../core/crab.js';
@@ -152,7 +152,7 @@ function onMyDrop(cause) {
     if (S.shot !== 'faces') shot('faces', { cut: true, k: 1, drift: .3 });
   });
   if (cause === 'end') {
-    S.rec.completed++; clawd.mood('happy', 2.2); clawd.blush = 1;
+    S.rec.completed++; emit('sticker', 'chirigiku'); clawd.mood('happy', 2.2); clawd.blush = 1;
     audio.sfx('bead-drop', { soft: true });
     tween(1, () => {}, () => S && pick(helpers).say(S.rec.completed > 1 ? 'again, all the way ✦' : 'all the way ✦', 2));
     return;
@@ -489,6 +489,11 @@ export default {
 
   ending,
   diary,
+  stats(result) {
+    const R = S?.rec; if (!R) return 'the last night';
+    const best = R.bestStage >= 0 ? ['牡丹 botan', '松葉 matsuba', '柳 yanagi', '散り菊 chiri-giku'][R.bestStage] : 'unlit';
+    return `${R.rounds.length} sparkler${R.rounds.length === 1 ? '' : 's'} · best: ${best} · ${R.completed} burned all the way down`;
+  },
 
   teardown() {
     if (!S) return;
