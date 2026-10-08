@@ -72,6 +72,11 @@ export const game = {
     if (def.delegation === false) hud.hide(['#crew']);
     if (!def.todo) hud.hide(['#todo']);
     def.start && def.start(game);
+    if (!save.data.seenTips && def.delegation !== false) {
+      save.data.seenTips = true; save.write();
+      const tips = ['click a station to do the job yourself', 'or click a helper, then a station, to delegate it', 'specialists ✦ work twice as fast · press / for the terminal'];
+      tips.forEach((t, i) => tween(1.2 + i * 3.4, () => {}, () => G.mode === 'play' && hud.toast(t, { dur: 3.2 })));
+    }
     const result = await new Promise(r => finishResolve = r);
     if (my !== runId) return;
 
@@ -365,6 +370,7 @@ function applySettings() {
 $('#mute').onclick = e => { e.stopPropagation(); const m = audio.mute(); save.setting('muted', m); syncMute(); };
 $('#gear').onclick = e => { e.stopPropagation(); settings.open(); };
 diary.onSettings = () => settings.open();
+settings.onEndEvening = () => { if (G.mode === 'play') { mini.close(true); game.finish({ complete: false, quit: true }); } };
 $('#menu').onclick = e => { e.stopPropagation(); if (G.mode === 'play') { mini.close(true); game.finish({ complete: false, quit: true }); } };
 
 // ── terminal: gameplay commands & natural-language delegation ──

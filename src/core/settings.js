@@ -30,6 +30,7 @@ export const settings = {
       ${['music', 'sfx', 'amb'].map(k => `<label class="st-row"><span>${{ music: 'music', sfx: 'sound effects', amb: 'cicadas & breeze' }[k]}</span><input type="range" id="st-${k}" min="0" max="1" step=".05" value="${v[k]}"></label>`).join('')}
       <div class="st-row"><span>graphics</span><span class="st-seg"><button data-q="high" class="${q !== 'low' ? 'on' : ''}">pretty</button><button data-q="low" class="${q === 'low' ? 'on' : ''}">light</button></span></div>
       <label class="st-row"><span>calmer camera</span><input type="checkbox" id="st-motion" ${save.setting('reduceMotion') ? 'checked' : ''}></label>
+      ${G.mode === 'play' ? '<div class="st-row"><span>this evening</span><button id="st-end" class="ghost">end it early</button></div>' : ''}
       <div class="st-row st-danger"><span>erase the diary</span><button id="st-erase" class="ghost">erase…</button></div>
       <div class="st-confirm hidden" id="st-confirm">Erase all five evenings, photos and wishes? <button id="st-yes" class="ghost">erase</button><button id="st-no" class="ghost">keep</button></div>
     </div>`;
@@ -43,6 +44,7 @@ export const settings = {
       el.querySelectorAll('[data-q]').forEach(x => x.classList.toggle('on', x === b));
     });
     $('#st-motion', el).onchange = e => { save.setting('reduceMotion', e.target.checked); document.documentElement.dataset.calm = e.target.checked ? '1' : ''; };
+    const end = $('#st-end', el); if (end) end.onclick = () => { close(); settings.onEndEvening && settings.onEndEvening(); };
     $('#st-erase', el).onclick = () => $('#st-confirm', el).classList.remove('hidden');
     $('#st-no', el).onclick = () => $('#st-confirm', el).classList.add('hidden');
     $('#st-yes', el).onclick = () => { save.reset(); location.reload(); };
