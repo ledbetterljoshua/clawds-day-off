@@ -83,7 +83,7 @@ function burst(type, o, c1, c2, size) {
       if (ch === 'o') return; // eyes stay dark
       for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
         const w = rand(.85, 1.1);
-        dirs.push({ v: new V3((c - 5) + a * .3 + rand(-.05, .05), (2.5 - r) + b * .3 + rand(-.05, .05), rand(-.15, .15)).multiplyScalar(1.6 * size), col: [.45 * w, .225 * w, .145 * w] });   // overlapping additive points saturate; keep it orange
+        dirs.push({ v: new V3((c - 5) + a * .3 + rand(-.05, .05), (2.5 - r) + b * .3 + rand(-.05, .05), rand(-.15, .15)).multiplyScalar(1.6 * size), col: [.6 * w, .27 * w, .15 * w] });   // overlapping additive points saturate; keep it orange
       }
     }));
   } else if (type === 'ring') {

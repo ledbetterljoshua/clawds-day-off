@@ -746,8 +746,9 @@ async function ending(result, game) {
   const half = boatsHere.length > 1 ? 1.0 : .5;
   await game.gather([[helpers[1], cx - half - .95, .66], [helpers[0], cx - half - .4, .6], [helpers[2], cx + half + .4, .62], [clawd, cx + half + 1.1, .58]], { timeout: 3.5 });
   crew.forEach(c => c.faceOverride = 0);
-  const asp = innerWidth / innerHeight, d = clamp((half + 2.1) / (Math.tan(THREE.MathUtils.degToRad(17)) * asp), 6, 13);
-  cam.shot(new V3(cx, .55 + d * .5, d * .82), new V3(cx, .45, -.25), { fov: 34, k: 1.4, drift: .4 });
+  // wide enough to keep the washed sky (and the rainbow) behind the crew
+  const asp = innerWidth / innerHeight, d = clamp((half + 2.6) / (Math.tan(THREE.MathUtils.degToRad(19)) * asp), 7, 14);
+  cam.shot(new V3(cx, 1.5 + d * .12, d * .95), new V3(cx, 1.0, -1), { fov: 38, k: 1.4, drift: .4 });
   // the photo happens in the washed, golden light right after the shower
   const p0 = G.phase; tween(4, e => G.phase = lerp(p0, Math.max(p0, .6), ease(e)));
   audio.setMood('golden');
