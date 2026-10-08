@@ -45,6 +45,8 @@ export const game = {
   async run(def) {
     const my = ++runId;
     audio.init();
+    await fade(1, .45);
+    if (my !== runId) return;
     teardown();
     diary.hide();
     G.chapter = def; G.locks = {}; G.t = 0; G.selected = null; G.effort = 0; resetStats(); lastPhoto = null; G.polaroid = null;
@@ -64,6 +66,7 @@ export const game = {
     for (const [k, fn] of Object.entries(def.commands || {})) { term.register(k, fn, ''); chapterCmds.push(k); }
 
     G.mode = 'intro';
+    fade(0, .8);
     if (def.introRun) await def.introRun(game); else await intro(def, my);
     if (my !== runId) return;
 
@@ -174,6 +177,12 @@ async function intro(def, my) {
   await sleep(skip.skip ? .2 : 1.2);
   if (def.introSays) def.introSays(game);
 }
+// full-screen fade between evenings (real time, so it works while the game clock is reset)
+function fade(to, dur) {
+  const f = $('#fade');
+  return new Promise(r => { f.style.transitionDuration = dur + 's'; f.style.opacity = to; setTimeout(r, dur * 1000); });
+}
+
 function introFrame() {
   if (innerWidth < innerHeight) return [new V3(-8.2, 2.1, 7.6), new V3(-8.2, .7, -.4)];
   return [new V3(-8.75, 1.45, 3.4), new V3(-8.3, .5, -.4)];
