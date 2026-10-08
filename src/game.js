@@ -47,7 +47,8 @@ export const game = {
     audio.init();
     teardown();
     diary.hide();
-    G.chapter = def; G.locks = {}; G.t = 0; G.selected = null; G.effort = 0; resetStats(); lastPhoto = null;
+    G.chapter = def; G.locks = {}; G.t = 0; G.selected = null; G.effort = 0; resetStats(); lastPhoto = null; G.polaroid = null;
+    chatter = (def.chatter || DEFAULT_CHATTER).map(c => ({ ...c, done: false }));
     G.speed = +(G.dev.get('speed') || 1);
     G.phase = def.phase?.[0] ?? 0;
     sky.setPreset(def.sky || 'clear');
@@ -84,7 +85,7 @@ export const game = {
     const text = def.diary ? def.diary(result, G.stats) : { jp: '', lines: [] };
     const stamp = result.stamp || (result.complete ? (result.perfect ? 'perfect' : 'good') : 'tried');
     helpers.forEach((h, i) => { const m = save.data.helpers[i]; m.tasks += G.stats.byHelper[i]; m.days += 1; });
-    save.setDay(def.id, { done: true, complete: !!result.complete, stamp, photo, text, stats: statsLine(result), at: Date.now() });
+    save.setDay(def.id, { done: true, complete: !!result.complete, stamp, photo, text, stats: statsLine(result), at: Date.now(), ...(G.polaroid ? { polaroid: G.polaroid } : {}) });
     await sleep(.6);
     if (my !== runId) return;
     audio.setMood('quiet');
@@ -94,7 +95,9 @@ export const game = {
   finish(result = {}) { if (finishResolve) { const r = finishResolve; finishResolve = null; r(result); } },
 
   // capture a photo for the diary on the next rendered frame
-  snap() { return new Promise(r => snapWaiters.push(p => { lastPhoto = p; r(p); })); },
+  snap() { return game.capture().then(p => (lastPhoto = p)); },
+  // a frame grab that doesn't become the evening's photo
+  capture() { return new Promise(r => snapWaiters.push(r)); },
   afterRender() { if (snapWaiters.length) { const p = diary.capture(); snapWaiters.splice(0).forEach(f => f(p)); } },
 
   // walk the crew to x positions; resolves when everyone has arrived (or after timeout)
@@ -258,6 +261,7 @@ initInput({
     if (e.key === 'Escape') { mini.close(true); select(null); return; }
     if (e.key === '/' || e.key === '`') { e.preventDefault(); term.open(); return; }
     if (['1', '2', '3'].includes(e.key) && G.chapter.delegation !== false) { const h = helpers[+e.key - 1]; if (h.g.visible) select(G.selected === h ? null : h); return; }
+    if (e.key === 'p' || e.key === 'P') { takePolaroid(); return; }
     if (e.key === 'm' || e.key === 'M') { const m = audio.mute(); hud.toast(m ? 'sound off' : 'sound on', { dur: 1.2 }); syncMute(); return; }
     if (e.key === 'e' || e.key === 'E' || e.key === 'Enter') {
       let best = null, bd = 1.3;
@@ -267,6 +271,34 @@ initInput({
     }
   },
 });
+
+// ambient lines as the sky changes; who: 'clawd' or a helper index
+const DEFAULT_CHATTER = [
+  { p: .46, who: 'clawd', text: 'golden hour ✦' },
+  { p: .64, who: 1, text: 'the sky is going pink' },
+  { p: .8, who: 2, text: 'lanterns are on!' },
+  { p: .92, who: 0, text: 'the first star ✦' },
+];
+let chatter = [];
+function runChatter() {
+  for (const c of chatter) {
+    if (c.done || G.phase < c.p) continue;
+    c.done = true;
+    const who = c.who === 'clawd' ? clawd : helpers[c.who];
+    if (who && who.g.visible && who.bubT <= 0 && !who.asleep) who.say(c.text, 2.6);
+  }
+}
+
+// polaroid: the player's own photo, taped onto tonight's diary page
+async function takePolaroid() {
+  if (G.mode !== 'play' && G.mode !== 'ending') return;
+  const f = $('#flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 120);
+  audio.sfx('shutter');
+  G.polaroid = await game.capture();
+  hud.toast('📷 taped into tonight\'s diary page', { dur: 2 });
+}
+audio.register('shutter', () => { audio.noise(.05, 'highpass', 3000, .25); audio.noise(.08, 'bandpass', 1200, .15, 1, { delay: .07 }); });
+$('#cam').onclick = e => { e.stopPropagation(); takePolaroid(); };
 
 // ── per-frame ──
 let wasWalking = false;
@@ -286,6 +318,7 @@ function update(dt) {
     else if (wasWalking && !clawd.pending && !G.mini) clawd.targetX = clawd.x;
     wasWalking = L || R;
     if (clawd.pending && clawd.arrived()) { const k = clawd.pending; clawd.pending = null; playerInteract(k); }
+    runChatter();
     if (def.delegation !== false) helpers.forEach(h => h.g.visible && helperTick(h, dt));
     if (G.mini) { G.stats.you += dt; G.mini.update(dt); }
   }

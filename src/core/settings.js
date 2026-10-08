@@ -33,8 +33,8 @@ export const settings = {
       <div class="st-row st-danger"><span>erase the diary</span><button id="st-erase" class="ghost">erase…</button></div>
       <div class="st-confirm hidden" id="st-confirm">Erase all five evenings, photos and wishes? <button id="st-yes" class="ghost">erase</button><button id="st-no" class="ghost">keep</button></div>
     </div>`;
-    el.classList.remove('hidden');
-    const close = () => { el.classList.add('hidden'); onClose && onClose(); };
+    el.classList.remove('hidden'); G.paused = true;
+    const close = () => { el.classList.add('hidden'); G.paused = false; onClose && onClose(); };
     $('#stx', el).onclick = close;
     el.onclick = e => { if (e.target === el) close(); };
     ['music', 'sfx', 'amb'].forEach(k => $(`#st-${k}`, el).oninput = e => { audio.setVolumes({ [k]: +e.target.value }); save.setting('volumes', audio.volumes); });

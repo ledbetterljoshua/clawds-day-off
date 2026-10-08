@@ -33,6 +33,9 @@ function crewHTML() {
   }).join('')}</ul></div>`;
 }
 
+// Klee One has no ō/ū; set long vowels in the rounded face
+const mac = s => esc(s).replace(/[ōūŌŪ]/g, m => `<span class="mac">${m}</span>`);
+
 function dateOf(def) {
   // the week of Mon Aug 3 – Fri Aug 7
   const d = new Date(2026, 7, 2 + def.day);
@@ -108,9 +111,10 @@ export const diary = {
     const text = e?.text || null;
     R.innerHTML = `
       <div class="dp-date"><span>${dt.m}がつ ${dt.d}にち ${dt.wd}ようび</span><span class="dp-wx">てんき: ${esc(def.weather || 'はれ')}</span></div>
-      <div class="dp-pic">${e?.photo ? `<img src="${e.photo}" alt="${esc(def.title)} — the evening's photo">` : `<div class="dp-empty"><b>${esc(def.jp)}</b><span>${esc(def.blurb || '')}</span></div>`}
+      <div class="dp-pic">${e?.photo ? `<img src="${e.photo}" alt="${esc(def.title)} — the evening's photo">` : `<div class="dp-empty"><b>${esc(def.jp)}</b><span>${mac(def.blurb || '')}</span></div>`}
+        ${e?.polaroid ? `<figure class="polaroid"><img src="${e.polaroid}" alt="a photo Clawd took"><figcaption>📷 by me</figcaption></figure>` : ''}
         ${e?.done ? stampSVG(e.stamp, true) : ''}</div>
-      <div class="dp-text">${text ? `<p class="jp">${esc(text.jp || '')}</p>${(text.lines || []).map(l => `<p>${esc(l)}</p>`).join('')}` : `<p class="jp">${esc(def.jpPreview || '')}</p><p>${esc(def.blurb || '')}</p>`}</div>
+      <div class="dp-text">${text ? `<p class="jp">${esc(text.jp || '')}</p>${(text.lines || []).map(l => `<p>${mac(l)}</p>`).join('')}` : `<p class="jp">${esc(def.jpPreview || '')}</p><p>${mac(def.blurb || '')}</p>`}</div>
       ${e?.stats ? `<div class="dp-stats">${esc(e.stats)}</div>` : ''}
       <div class="dp-actions">
         ${fresh && nxt && diary.unlocked(nxt) ? `<button class="go" id="next">next evening · ${esc(nxt.title)}</button>` : ''}

@@ -19,7 +19,7 @@ post.init();
 let last = performance.now();
 function frame(now) {
   const real = Math.min(.05, (now - last) / 1000); last = now;
-  const dt = real * G.speed;
+  const dt = G.paused ? 0 : real * G.speed;
   G.time += dt;
   updateTweens(dt);
   game.update(dt);
