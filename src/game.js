@@ -502,7 +502,7 @@ const trainMat = new THREE.MeshLambertMaterial({ color: 0xe8e2d0, emissive: 0xff
 function trainPass() {
   const g = new THREE.Group();
   for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(box(6, 2.2, 2.6), trainMat); m.position.x = i * 6.6; g.add(m); }
-  g.position.set(-200, -19, -70); scene.add(g);
+  g.position.set(-200, -25.3, -70); scene.add(g);
   audio.sfx('crossing');
   tween(16, e => { g.position.x = -200 + e * 400; }, () => scene.remove(g));
 }
