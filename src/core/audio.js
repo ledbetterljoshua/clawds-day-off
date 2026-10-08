@@ -14,7 +14,7 @@ export { tone, noise };
 
 const LOOKAHEAD = .35;
 const A = {
-  vol: { master: .8, music: .55, sfx: .8, amb: .7 }, muted: false, mood: 'day', amb: {},
+  vol: { master: .8, music: .55, sfx: .8, amb: .7 }, muted: G.dev.has('mute'), mood: 'day', amb: {},
   rainLoop: 0, windLoop: 0, pending: new Map(), timer: null, perf: { ticks: 0, ms: 0, max: 0 },
 };
 const user = new Map();
