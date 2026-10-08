@@ -137,7 +137,21 @@ function build(root) {
 let _strawMat = null;
 function strawMat() {
   if (_strawMat) return _strawMat;
-  const t = canvasTex(128, 128, x => { x.fillStyle = '#e02a3a'; x.fillRect(0, 0, 128, 128); x.fillStyle = '#ffd54a'; for (let i = 0; i < 70; i++) x.fillRect(Math.random() * 128, Math.random() * 128, 3, 4); });
+  // staggered seeds, each sitting in a small dimple, a paler shoulder under the calyx, and two
+  // painted gloss streaks (front and back, so one always faces the camera)
+  const t = canvasTex(512, 512, (x, w, h) => {
+    const g = x.createLinearGradient(0, h, 0, 0); g.addColorStop(0, '#e8343f'); g.addColorStop(.75, '#e02a3a'); g.addColorStop(1, '#f0707a');
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+    for (let r = 0; r < 14; r++) for (let c = 0; c < 16; c++) {
+      const sy = (r + .6) * h / 14.5;
+      for (const sx of [(c + (r % 2) * .5) * w / 16, (c + (r % 2) * .5) * w / 16 - w]) {
+        x.fillStyle = 'rgba(150,10,30,.45)'; x.beginPath(); x.ellipse(sx, sy, 8, 10, 0, 0, Math.PI * 2); x.fill();
+        x.fillStyle = '#ffd86a'; x.beginPath(); x.ellipse(sx, sy + 1, 3, 4.5, 0, 0, Math.PI * 2); x.fill();
+      }
+    }
+    x.fillStyle = 'rgba(255,255,255,.75)';
+    for (const u of [.22, .72]) { x.beginPath(); x.ellipse(u * w, h * .62, 9, 34, .25, 0, Math.PI * 2); x.fill(); x.beginPath(); x.ellipse(u * w + 22, h * .42, 5, 12, .25, 0, Math.PI * 2); x.fill(); }
+  });
   return _strawMat = toon(0xffffff, { map: t });
 }
 const cutMat = toon(0xffb8c0);
