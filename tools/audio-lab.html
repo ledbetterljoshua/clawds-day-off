@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Clawd Audio Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* A dev console in the game's terminal style: one dark panel per control group. */
+:root{
+  color-scheme: dark;
+  --bg:#141218; --panel:#1d1a22; --line:#ffffff1a; --ink:#f4ede4; --dim:#a79e94; --acc:#d97757; --ok:#7bd88f; --warn:#f7d488; --bad:#ff7b72;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:13px/1.5 var(--mono);padding:20px 16px 40px}
+header{max-width:1100px;margin:0 auto 18px;display:flex;flex-direction:column;gap:6px}
+h1{font-size:18px;font-weight:600}
+h1 b{color:var(--acc)}
+header p{color:var(--dim);max-width:70ch}
+main{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+section.wide{grid-column:1/-1}
+h2{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+button{font:inherit;color:var(--ink);background:#2a2731;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--acc)}
+button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+button.go{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sl{display:grid;grid-template-columns:92px minmax(0,1fr) 44px;gap:8px;align-items:center}
+.sl.auto{grid-template-columns:92px minmax(0,1fr) 44px 52px}
+.sl label{color:var(--dim)}
+.sl output{text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--acc)}
+input[type=checkbox]{accent-color:var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px}
+.grid button{text-align:left}
+.stat{color:var(--dim)}
+.stat b{color:var(--ink);font-weight:600}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--dim);font-weight:400}
+.ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1><b>✻</b> Clawd's Day Off · audio lab</h1>
+  <p>Every sound in the game is synthesized in code. Start audio, then audition moods, the sky-driven ambience, loops and one-shots. "Measure" renders everything offline and reports levels.</p>
+</header>
+<main>
+  <section>
+    <h2>transport</h2>
+    <div class="row"><button class="go" id="start">start audio</button><button id="mute">mute</button><span class="stat" id="state">not started</span></div>
+    <div id="vols"></div>
+  </section>
+  <section>
+    <h2>music mood</h2>
+    <div class="row" id="moods"></div>
+    <div class="stat">now playing: <b id="playing">—</b> · <span id="perf"></span></div>
+  </section>
+  <section>
+    <h2>sky clock</h2>
+    <div class="sl"><label for="phase">phase</label><input type="range" id="phase" min="0" max="1" step=".01" value=".1"><output id="phaseOut">.10</output></div>
+    <div class="row"><span class="stat">mode</span><span id="modes" class="row"></span></div>
+    <div class="stat" id="clock"></div>
+  </section>
+  <section>
+    <h2>ambience</h2>
+    <div id="amb"></div>
+    <div class="stat">levels: <span id="levels"></span></div>
+  </section>
+  <section>
+    <h2>loops</h2>
+    <div id="loops"></div>
+  </section>
+  <section class="wide">
+    <h2>one-shots</h2>
+    <div class="sl"><label for="x">world x</label><input type="range" id="x" min="-10" max="10" step=".5" value="0"><output id="xOut">0</output></div>
+    <div class="grid" id="sfx"></div>
+    <div class="row"><span class="stat">voices</span><button data-v="3">clawd</button><button data-v="0">helper 1</button><button data-v="1">helper 2</button><button data-v="2">helper 3</button></div>
+  </section>
+  <section class="wide">
+    <h2>measure</h2>
+    <div class="row"><button class="go" id="measure">render &amp; measure everything</button><span class="stat" id="mstate">peak must stay under −0.9 dBFS (0.9); flags: CLIP, SILENT, CLICK, TAIL</span></div>
+    <div class="tbl"><table id="report"><thead><tr><th>item</th><th>sec</th><th>peak</th><th>peak dB</th><th>rms dB</th><th>loudest 0.4s dB</th><th>flags</th></tr></thead><tbody></tbody></table></div>
+  </section>
+</main>
+<script type="module">
+import { audio, renderOffline, bufferStats, SCENARIOS } from '../src/core/audio.js';
+import { G } from '../src/core/state.js';
+
+const $ = s => document.querySelector(s);
+G.mode = 'play'; G.phase = .1;
+
+// transport
+$('#start').onclick = () => { audio.init(); $('#state').textContent = 'running'; };
+$('#mute').onclick = e => { const m = audio.mute(); e.target.classList.toggle('on', m); };
+const vols = audio.volumes;
+$('#vols').innerHTML = Object.keys(vols).map(k => `<div class="sl"><label for="v-${k}">${k}</label><input type="range" id="v-${k}" min="0" max="1" step=".01" value="${vols[k]}"><output>${vols[k].toFixed(2)}</output></div>`).join('');
+for (const k of Object.keys(vols)) $('#v-' + k).oninput = e => { audio.setVolumes({ [k]: +e.target.value }); e.target.nextElementSibling.textContent = (+e.target.value).toFixed(2); };
+
+// moods
+const moods = ['day', ...audio.moods.filter(m => m !== 'day'), 'off'];
+$('#moods').innerHTML = moods.map(m => `<button data-m="${m}">${m === 'day' ? 'auto (sky)' : m}</button>`).join('');
+const markMood = () => document.querySelectorAll('[data-m]').forEach(b => b.classList.toggle('on', b.dataset.m === audio.mood));
+document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { audio.setMood(b.dataset.m); markMood(); });
+markMood();
+
+// sky clock + mode
+$('#phase').oninput = e => { G.phase = +e.target.value; $('#phaseOut').textContent = G.phase.toFixed(2); };
+$('#modes').innerHTML = ['play', 'ending', 'title', 'diary'].map(m => `<button data-mode="${m}">${m}</button>`).join('');
+const markMode = () => document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === G.mode));
+document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { G.mode = b.dataset.mode; markMode(); });
+markMode();
+
+// ambience overrides (unchecked "auto" means the slider value is forced)
+const AMB = ['cicada', 'higurashi', 'crickets', 'city', 'wind', 'rain', 'festival'];
+$('#amb').innerHTML = AMB.map(k => `<div class="sl auto"><label for="a-${k}">${k}</label><input type="range" id="a-${k}" min="0" max="1" step=".01" value="0" disabled><output>auto</output><label><input type="checkbox" id="ac-${k}" checked> auto</label></div>`).join('');
+for (const k of AMB) {
+  const sl = $('#a-' + k), cb = $('#ac-' + k), out = sl.nextElementSibling;
+  const apply = () => { sl.disabled = cb.checked; out.textContent = cb.checked ? 'auto' : (+sl.value).toFixed(2); audio.setAmbience({ [k]: cb.checked ? null : +sl.value }); };
+  sl.oninput = apply; cb.onchange = apply;
+}
+
+// loops
+$('#loops').innerHTML = audio.loops.map(k => `<div class="sl"><label for="l-${k}">${k}</label><input type="range" id="l-${k}" min="0" max="1" step=".01" value="0"><output>0.00</output></div>`).join('');
+for (const k of audio.loops) $('#l-' + k).oninput = e => { audio.loop(k, +e.target.value); e.target.nextElementSibling.textContent = (+e.target.value).toFixed(2); };
+
+// one-shots
+$('#x').oninput = e => $('#xOut').textContent = e.target.value;
+$('#sfx').innerHTML = audio.names().filter(n => n !== 'voice').map(n => `<button data-s="${n}">${n}</button>`).join('');
+document.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { audio.init(); audio.sfx(b.dataset.s, { x: +$('#x').value, strength: .8 }); });
+document.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { audio.init(); audio.sfx('voice', { i: +b.dataset.v, n: 24, x: +$('#x').value }); });
+
+// the lab drives the scheduler itself (the game does this from its frame loop)
+let last = performance.now();
+function frame(now) {
+  audio.update((now - last) / 1000); last = now;
+  $('#playing').textContent = audio.ready ? audio.playing : '—';
+  const p = audio.perf; $('#perf').textContent = audio.ready ? `scheduler ${p.avg.toFixed(3)} ms avg · ${p.max.toFixed(2)} ms max` : '';
+  const L = audio.ambience; $('#levels').textContent = Object.entries(L).map(([k, v]) => `${k} ${v.toFixed(2)}`).join(' · ');
+  const m = 17 * 60 + Math.round(G.phase * 165); $('#clock').textContent = `≈ ${Math.floor(m / 60) - 12}:${String(m % 60).padStart(2, '0')} pm on a 5:00–7:45 evening`;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// measurement
+async function measure() {
+  const rows = [], tb = $('#report tbody'); tb.innerHTML = '';
+  const add = (item, sec, s, flags) => {
+    rows.push({ item, sec, peak: +s.peak.toFixed(4), peakDb: +s.peakDb.toFixed(1), rmsDb: +s.rmsDb.toFixed(1), loudDb: +s.loudDb.toFixed(1), flags });
+    const cls = flags.includes('CLIP') || flags.includes('SILENT') || flags.includes('CLICK') || flags.includes('TAIL') ? 'bad' : 'ok';
+    tb.insertAdjacentHTML('beforeend', `<tr><td>${item}</td><td>${sec}</td><td>${s.peak.toFixed(3)}</td><td>${s.peakDb.toFixed(1)}</td><td>${s.rmsDb.toFixed(1)}</td><td>${s.loudDb.toFixed(1)}</td><td class="${cls}">${flags.join(' ') || 'ok'}</td></tr>`);
+  };
+  const flagsOf = s => [s.peak > .9 ? 'CLIP' : '', s.peak < 1e-4 ? 'SILENT' : ''].filter(Boolean);
+  const run = async (item, sc) => { const buf = await renderOffline(sc.seconds, sc.fn); const s = bufferStats(buf, sc.from || 0); add(item, +(sc.seconds - (sc.from || 0)).toFixed(1), s, flagsOf(s)); return buf; };
+  $('#mstate').textContent = 'rendering…';
+  const t0 = performance.now();
+  for (const n of audio.names()) await run('sfx · ' + n, SCENARIOS.sfx(n));
+  for (const i of [0, 1, 2, 3]) await run('voice · ' + ['helper 1', 'helper 2', 'helper 3', 'clawd'][i], SCENARIOS.sfx('voice', { i, n: 24 }));
+  for (const m of audio.moods) await run('mood · ' + m, SCENARIOS.mood(m, 20));
+  for (const [label, ph, extra] of [['day', .1, {}], ['golden', .5, {}], ['dusk', .72, {}], ['night', .96, {}], ['rain', .55, { rain: 1 }], ['festival', .95, { festival: 1 }]]) await run('ambience · ' + label, SCENARIOS.ambience(ph, extra, 15));
+  for (const n of audio.loops.filter(n => n !== 'rain' && n !== 'wind')) {
+    const sc = SCENARIOS.loop(n), buf = await renderOffline(sc.seconds, sc.fn), P = sc.from;
+    const body = bufferStats(buf, P + .5, P + 4.3), head = bufferStats(buf, P, P + .05), tail = bufferStats(buf, P + 6.5, P + 7.5);
+    const f = flagsOf(body);
+    if (head.maxStep > Math.max(.02, body.maxStep * 2)) f.push('CLICK');
+    if (tail.rmsDb > -60) f.push('TAIL');
+    add('loop · ' + n + ` (tail ${tail.rmsDb.toFixed(0)} dB)`, 7.5, body, f);
+  }
+  await run('finale stress (festival + crowd + fireworks)', SCENARIOS.finale(12));
+  const ms = Math.round(performance.now() - t0);
+  $('#mstate').textContent = `done · ${rows.length} renders in ${ms} ms · ${rows.filter(r => r.flags.length).length} flagged`;
+  window.__report = rows;
+  return rows;
+}
+$('#measure').onclick = measure;
+window.runMeasure = measure;
+</script>
+</body>
+</html>
