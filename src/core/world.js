@@ -5,38 +5,12 @@ import { rand, lerp } from './util.js';
 import { termTex } from './terminal.js';
 import { G } from './state.js';
 import { audio } from './audio.js';
+import { backdrop } from './backdrop.js';
 
 export const world = { lanterns: [], lanternMats: [], wind: 0 };
 
-// ── city far below ──
-const winTex = canvasTex(64, 64, x => {
-  x.fillStyle = '#000'; x.fillRect(0, 0, 64, 64);
-  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) if (Math.random() < .38) { x.fillStyle = Math.random() < .7 ? '#ffd890' : '#bfe0ff'; x.fillRect(i * 8 + 2, j * 8 + 2, 4, 4); }
-});
-world.cityMat = new THREE.MeshLambertMaterial({ color: 0x95a8c6, emissive: 0xffd08a, emissiveMap: winTex, emissiveIntensity: 0 });
-{
-  const N = 900, city = new THREE.InstancedMesh(box(1, 1, 1), world.cityMat, N), m4 = new THREE.Matrix4(), q = new THREE.Quaternion();
-  for (let i = 0; i < N; i++) {
-    const z = rand(-95, -320), x = rand(-1.3, 1.3) * -z, h = rand(4, 13) * (Math.random() < .06 ? 2.2 : 1);
-    m4.compose(new V3(x, -28 + h / 2, z), q, new V3(rand(3, 8), h, rand(3, 8))); city.setMatrixAt(i, m4);
-  }
-  scene.add(city); world.city = city;
-  const ground = mesh(new THREE.PlaneGeometry(1400, 1400), new THREE.MeshLambertMaterial({ color: 0x7d9478 }), 0, -28, 0, scene, false);
-  ground.rotation.x = -Math.PI / 2;
-}
-const treeMats = [toon(0x4f8f45), toon(0x3c7a3c)];
-function tree(x, y, z, s) {
-  const g = group(scene, x, y, z);
-  for (let i = 0; i < 5; i++) { const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), treeMats[i % 2]); m.position.set(rand(-.8, .8) * s, rand(0, .9) * s, rand(-.5, .5) * s); m.scale.setScalar(s * rand(.6, 1)); g.add(m); }
-  return g;
-}
-world.trees = [tree(-13.5, -2.6, -5, 2.4), tree(13.2, -2.2, -6, 2.8), tree(-16, -3, -10, 3), tree(16.5, -2.8, -11, 3.2)];
-
-function wire(y, z, sag) {
-  const pts = []; for (let i = 0; i <= 40; i++) { const t = i / 40; pts.push(new V3(lerp(-220, 220, t), y - sag * (1 - Math.pow(2 * t - 1, 2)), z)); }
-  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x2a2836 })));
-}
-wire(17, -45, 4); wire(18.4, -45, 4.2); wire(19.8, -46, 4.4);
+// ── the view: the town, the city in the haze, the trees (painted; see backdrop.js) ──
+world.backdrop = backdrop;
 
 // ── balcony ──
 // painted plank grain: long soft streaks, a few knots, nail holes. Greyscale, so it only
