@@ -137,7 +137,8 @@ src/core/
   hud.js     todo / clock / crew cards / hint / tooltip / hud.toast(html)
   diary.js   title cover, the week, day pages, photo capture
   save.js    localStorage progress (guarded): save.data, save.day(id), save.setDay
-  post.js    EffectComposer: bloom
+  post.js    EffectComposer: scene → ink → (cutscene DOF) → bloom → tone map + grade
+  ink.js     InkPass: normal/depth prepass + colored line art
   input.js   pointer + keys → game; chapters can intercept (def.pointer / def.key)
 src/chapters/   one file per evening + index.js
 ```
@@ -160,6 +161,29 @@ src/chapters/   one file per evening + index.js
 `main.js` each frame: `updateTweens → game.update (chapter.update, helpers, minigame) →
 world.update → crew.update → sky.update → fx → camera → hud → terminal → audio → post.render`.
 `G.time` is game seconds (scaled by `G.speed`); `G.phase` is the sky clock 0..1.
+
+### The look
+
+The target is Ishu's film: anime background art with cel-shaded props. What carries it:
+
+- **Two-tone cel shading.** Everything built with `toon()` (or `MeshToonMaterial` + `gradTex`)
+  gets a two-step ramp with a soft terminator: faces turned from the key keep 75% of it, cast
+  shadows lose all of it and fall to the cool sky fill. The shadow side sees a more saturated
+  albedo, so shadows deepen in hue (orange → red-orange, mint → blue) instead of greying.
+  Pick base colors as the *lit* color you want; don't pre-darken.
+- **The key light comes from the sun** (or the moon), lifted so the counter never drops into
+  shade. The scene is backlit in the afternoon, like the film. Light levels live in `CEL` in
+  sky.js; the per-phase colors stay in the presets.
+- **Ink.** `ink.js` draws colored line art on silhouettes and creases: a deeper shade of the
+  surface it outlines, fading out past ~26–60 units. It skips transparent / no-depth-write /
+  alpha-tested materials, ShaderMaterials, lines, points, sprites, and anything with
+  `userData.noInk` on the object or its material. Set `noInk` on things that shouldn't get a
+  line (soft fx, painted cards). `?noink` turns the pass off for comparison.
+- **Paint, not flat color.** Big surfaces get a greyscale `canvasTex` that modulates the
+  material color (plank grain, leaf veins, lantern ribs). Keep detail painterly and low-contrast;
+  the ink and the cel shadows do the drawing.
+- **Komorebi.** An unseen leaf canopy (sky.js) sits between the sun and the right end of the
+  counter and sways with `world.wind`, so dappled shadows drift over it.
 
 ## Chapter contract
 
