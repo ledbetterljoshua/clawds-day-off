@@ -6,7 +6,6 @@ import { clamp, lerp, rand } from './util.js';
 import { world } from './world.js';
 
 let rainLines = null, ripples = null, bounce = null, drips = null, flies = null, woodBase = null;
-const shimmerU = { uShimmer: { value: 0 }, uShTime: { value: 0 } };
 const camDir = new V3();
 const WET = new THREE.Color('#5a4a52');
 
@@ -20,7 +19,6 @@ function init(sky) {
   drips = makeDrips(90);
   flies = makeFireflies(low ? 70 : 160);
   woodBase = ['wood', 'woodDark', 'woodLight'].map(k => [MAT[k], MAT[k].color.clone()]);
-  patchCityShimmer();
   weather.parts = { rainLines, ripples, bounce, drips, flies };
 }
 
@@ -181,24 +179,6 @@ function makeFireflies(n) {
   return pts;
 }
 
-// heat haze: distant buildings waver a little on a hot afternoon
-function patchCityShimmer() {
-  const cm = world.cityMat;
-  cm.onBeforeCompile = shader => {
-    shader.uniforms.uShimmer = shimmerU.uShimmer; shader.uniforms.uShTime = shimmerU.uShTime;
-    shader.vertexShader = 'uniform float uShimmer;\nuniform float uShTime;\n' + shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
-      #ifdef USE_INSTANCING
-        float ix = instanceMatrix[3].x;
-      #else
-        float ix = 0.;
-      #endif
-      float hgt = position.y + .5;
-      transformed.x += sin(uShTime * 3.3 + hgt * 9. + ix * .21) * uShimmer * .07 * hgt;
-      transformed.y += sin(uShTime * 2.7 + ix * .37) * uShimmer * .04 * hgt;`);
-  };
-  cm.customProgramCacheKey = () => 'city-shimmer';
-}
-
 function update(dt, sky, lv) {
   const t = G.time, r = lv.rain;
   rainLines.visible = ripples.visible = bounce.visible = r > .002;
@@ -217,5 +197,5 @@ function update(dt, sky, lv) {
   const f = lv.fireflies;
   flies.visible = f > .002;
   if (flies.visible) { flies.material.uniforms.uTime.value = t; flies.material.uniforms.uAmt.value = f; }
-  shimmerU.uShimmer.value = lv.shimmer; shimmerU.uShTime.value = t;
+  world.backdrop.U.uShimmer.value = lv.shimmer;
 }

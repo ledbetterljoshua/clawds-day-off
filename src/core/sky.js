@@ -448,9 +448,7 @@ export const sky = {
     else { rim.color.copy(Pl.sun); rim.position.copy(sd).multiplyScalar(30); }
     rim.intensity = Pl.rimI;
     hemi.color.copy(Pl.hs); hemi.groundColor.copy(Pl.hg); hemi.intensity = Pl.hI + (G.flash || 0) * .5 + flick * .8;
-    const c = world.cityMat;
-    c.color.copy(Pl.city);
-    c.emissiveIntensity = Math.max(smooth(.62, .95, p), moonOn) * Pl.cityLit * (1 - .3 * o);
+    world.backdrop.update(Pl, p, { moonOn, overcast: o, tier: sky.tier, outInv: OUT_INV, inInv: IN_INV, expK: u.uExpK.value, wind: world.wind, sun: sd });
     const glow = Math.max(smooth(.6, .95, p), moonOn);
     const ls = sky.lanternScale ?? 1;
     world.lanternMats.forEach(m => m.emissiveIntensity = (.05 + glow * .8) * (.35 + .65 * ls));
