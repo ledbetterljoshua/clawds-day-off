@@ -35,7 +35,7 @@ an interactive terminal on the laptop, helpers who remember the week, generative
 painted skies with rain, rainbows, fireflies and the Milky Way.
 
 **Controls:** click a station to go work it · click a helper (or its card, or 1–3), then a station,
-to delegate · A/D walk · E interact · Space minigames · `/` opens the terminal (try `/help`,
+to delegate · A/D walk · Space jump (hold for higher; it also drives the minigames) · E interact · `/` opens the terminal (try `/help`,
 `h3 shave ice`, `/effort max`, `sl`, `hanabi`, `crabsay`) · M mute · Esc cancel.
 
 **Dev params:** `?day=N` jump to a day · `&skip` skip the intro · `&speed=4` · `&phase=0.7` pin the

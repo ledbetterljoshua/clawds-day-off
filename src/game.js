@@ -1,6 +1,6 @@
 // The chapter runner: title → diary → an evening (intro at the laptop, play, ending) → diary page.
 // Chapters are plain objects (see DESIGN.md, "Chapter contract"); this file drives them.
-import { G, resetStats } from './core/state.js';
+import { G, resetStats, on } from './core/state.js';
 import { THREE, V3, scene, mesh, box, hitMat, COL } from './core/gfx.js';
 import { $, clamp, rand, pick, lerp, easeOutBack } from './core/util.js';
 import { tween, sleep, until } from './core/tween.js';
@@ -278,7 +278,7 @@ initInput({
       if (def.delegation === false) { const h = hit.crab; h.say(pick(h.voice) || '✦'); h.hop(.3); return; }
       select(G.selected === hit.crab ? null : hit.crab); return;
     }
-    if (hit?.crab === clawd) { select(null); clawd.say(pick(['✦', 'hi', 'day off!', '(◕ᴗ◕)', 'mm, summer'])); clawd.hop(.4); return; }
+    if (hit?.crab === clawd) { select(null); if (Math.random() < .35) clawd.say(pick(['✦', 'hi', 'day off!', '(◕ᴗ◕)', 'mm, summer', 'ぴょん!'])); clawd.jump(); return; }
     if (hit?.station) {
       let k = def.redirect ? (def.redirect(hit.station) || hit.station) : hit.station;
       if (G.selected) { assign(G.selected, k); select(null); }
@@ -287,11 +287,12 @@ initInput({
     }
     select(null);
   },
+  keyup(e) { if (e.code === 'Space') clawd.jumpRelease(); },
   key(e) {
     if (G.mode === 'intro' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); introTap && introTap(); return; }
     if (G.mode !== 'play') return;
     if (e.repeat && e.code === 'Space') { e.preventDefault(); return; }
-    if (e.code === 'Space') { e.preventDefault(); G.mini && G.mini.act(); return; }
+    if (e.code === 'Space') { e.preventDefault(); if (G.mini) G.mini.act(); else clawd.jump(); return; }
     if (e.key === 'Escape') { mini.close(true); select(null); return; }
     if (e.key === '/' || e.key === '`') { e.preventDefault(); term.open(); return; }
     if (['1', '2', '3'].includes(e.key) && !e.repeat && G.chapter.delegation !== false) { const h = helpers[+e.key - 1]; if (h.g.visible) select(G.selected === h ? null : h); return; }
@@ -304,6 +305,14 @@ initInput({
       if (best) playerGo(best);
     }
   },
+});
+
+// jumping is contagious: idle helpers hop along a beat after clawd
+on('jump', c => {
+  if (c !== clawd || G.mode !== 'play') return;
+  G.stats.jumps = (G.stats.jumps || 0) + 1;
+  if (G.stats.jumps === 20) award('hop');
+  helpers.forEach((h, i) => { if (h.g.visible && !h.job && !h.action && !h.workAnim && !h.asleep) tween(.12 + i * .08, () => {}, () => h.jump(.72)); });
 });
 
 // ambient lines as the sky changes; who: 'clawd' or a helper index

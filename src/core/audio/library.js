@@ -10,6 +10,9 @@ const at = (o, extra = 0) => ({ t0: T(o) + extra });
 
 // ── interface ──
 R('pop', o => { tone(380, .14, 'sine', .1, 900, at(o)); noise(.02, 'highpass', 3200, .02, .7, at(o)); });
+// a hop (pyon) and a soft wooden landing; helpers are smaller, so higher and quieter
+R('jump', o => { const k = o.small ? 1.4 : 1, g = o.small ? .6 : 1; tone(260 * k, .17, 'sine', .075 * g, 700 * k, at(o)); tone(520 * k, .1, 'triangle', .022 * g, 1300 * k, at(o, .015)); });
+R('land', o => { const k = o.small ? 1.35 : 1, v = (.35 + .65 * (o.v ?? 1)) * (o.small ? .6 : 1); tone(150 * k, .09, 'triangle', .085 * v, 80 * k, at(o)); noise(.045, 'bandpass', 650 * k, .05 * v, 1.3, at(o)); });
 R('select', o => { tone(520, .08, 'sine', .1, 780, at(o)); tone(780, .1, 'sine', .055, 1040, at(o, .05)); });
 R('deny', o => { tone(240, .14, 'triangle', .085, 170, at(o)); tone(180, .16, 'triangle', .065, 130, at(o, .09)); });
 R('chime', o => { tone(880, .35, 'triangle', .1, null, { ...at(o), send: .2 }); tone(1318.5, .5, 'triangle', .085, null, { ...at(o, .09), send: .25 }); });

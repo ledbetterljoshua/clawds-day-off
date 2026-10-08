@@ -63,6 +63,6 @@ addEventListener('keyup', e => {
   held[k] = false;
   if (term.isOpen) return;
   if (G.chapter?.key && G.chapter.key(e, 'up') === true) return;
-  if (e.code === 'Space' && G.mini?.actUp) G.mini.actUp();
+  if (e.code === 'Space') { if (G.mini?.actUp) G.mini.actUp(); H && H.keyup && H.keyup(e); }
 });
 addEventListener('blur', () => { for (const k in held) held[k] = false; });

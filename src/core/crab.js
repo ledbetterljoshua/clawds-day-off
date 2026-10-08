@@ -1,6 +1,6 @@
 // Clawd and the helpers. One class, two sizes.
 import { THREE, V3, scene, mesh, group, box, rbox, cyl, sph, toon, canvasTex, COL, toScreen, camera } from './gfx.js';
-import { G } from './state.js';
+import { G, emit } from './state.js';
 import { $, rand, clamp, lerp, damp, wrapAngle } from './util.js';
 import { audio } from './audio.js';
 import { puff } from './fx.js';
@@ -43,6 +43,7 @@ export class Crab {
     this.waitMsg = ''; this.lastSay = ''; this.bubT = 0; this.idleT = 0; this.asleep = false; this.sit = 0; this.sitTarget = 0;
     this.gaze = { x: 0, y: 0 }; this.gazeTarget = null; this.blush = 0; this.sweat = 0; this.pending = null;
     this.spoon.visible = false; this.speed = this.baseSpeed; this.squash = 0;
+    this.jumpY = 0; this.jumpV = 0; this.jumpHold = false; this.jumpBuf = 0;
     this.g.visible = visible; this.g.scale.setScalar(this.scale); this.sel.visible = false;
     this._face = null; this.drawFace('normal');
   }
@@ -82,6 +83,19 @@ export class Crab {
   }
   mood(e, dur = 1.4) { this.expr = e; this.exprT = dur; }
   hop(h = .6) { this.happyT = Math.max(this.happyT, h); }
+  // a real jump: hold for higher, stretch on the way up, squash and dust on landing.
+  // Pressed while airborne, it's remembered for a moment and fires on landing.
+  jump(power = 1) {
+    if (!this.g.visible) return false;
+    if (this.jumpY > 0) { this.jumpBuf = .14; return false; }
+    this.wake(); this.idleT = 0; this.sitTarget = 0; this.sit = 0;
+    this.jumpV = 6.4 * power; this.jumpY = 1e-3; this.jumpHold = true;
+    this.mood('happy', .8);
+    audio.sfx('jump', { x: this.x, small: this.scale < 1 });
+    emit('jump', this);
+    return true;
+  }
+  jumpRelease() { this.jumpHold = false; }
   lookAt(v) { this.gazeTarget = v; }   // world V3 or null (looks at camera/cursor)
   get height() { return 1.25 * this.scale; }
   arrived() { return Math.abs(this.targetX - this.x) < .05; }
@@ -89,6 +103,19 @@ export class Crab {
 
   update(dt) {
     this.t += dt;
+    if (this.jumpBuf > 0) this.jumpBuf -= dt;
+    if (this.jumpY > 0) {
+      // lighter gravity while the key is held on the way up; a quick fall
+      this.jumpV -= (this.jumpV > 0 && this.jumpHold ? 16 : 36) * dt;
+      this.jumpY += this.jumpV * dt;
+      if (this.jumpY <= 0) {
+        const v = Math.min(1, -this.jumpV / 7);
+        this.jumpY = 0; this.jumpV = 0; this.squash = 1;
+        for (const s of [-1, 1]) puff(this.x + s * .35 * this.scale, .04, this.z + .1, 3, [.86, .8, .7]);
+        audio.sfx('land', { x: this.x, small: this.scale < 1, v });
+        if (this.jumpBuf > 0) { this.jumpBuf = 0; this.jump(); }
+      }
+    }
     const dx = this.targetX - this.x, moving = Math.abs(dx) > .05 && this.speed > 0;
     let face = this.faceOverride ?? 0;
     if (moving) {
@@ -96,10 +123,11 @@ export class Crab {
       this.x += Math.sign(dx) * Math.min(Math.abs(dx), this.speed * dt * (G.effort > 0 ? 1.6 : 1));
       this.walkT += dt * 13; face = dx > 0 ? Math.PI / 2 : -Math.PI / 2; this.idleT = 0; this.sitTarget = 0;
       this.dustT = (this.dustT ?? 0) - dt;
-      if (this.dustT < 0 && this.g.visible && this.y < .05) { this.dustT = .28; puff(this.x - Math.sign(dx) * .35 * this.scale, .04, this.z + .1, 1, [.86, .8, .7]); }
+      if (this.dustT < 0 && this.g.visible && this.y + this.jumpY < .05) { this.dustT = .28; puff(this.x - Math.sign(dx) * .35 * this.scale, .04, this.z + .1, 1, [.86, .8, .7]); }
     }
     this.rotY += wrapAngle(face - this.rotY) * damp(12, dt);
-    this.legs.forEach((l, i) => l.rotation.x = moving ? Math.sin(this.walkT + (i % 2) * Math.PI) * .55 : l.rotation.x * .8);
+    const air = this.jumpY > 0;
+    this.legs.forEach((l, i) => l.rotation.x = air ? (i % 2 ? .35 : -.35) : moving ? Math.sin(this.walkT + (i % 2) * Math.PI) * .55 : l.rotation.x * .8);
 
     // idle life: sit down after a while, doze off after longer
     const idle = !moving && !this.action && !this.workAnim && !this.job && G.mode === 'play' && this !== crew[0];
@@ -123,18 +151,21 @@ export class Crab {
       case 'write': armA = -.4 + Math.sin(this.t * 16) * .12; bob += Math.abs(Math.sin(this.t * 5)) * .01; break;
       case 'cheer': armA = armB = -1.4 + Math.sin(this.t * 12) * .3; armUp = .1; bob += Math.abs(Math.sin(this.t * 9)) * .1; break;
     }
+    if (air) { armA = armB = -1.1 + clamp(this.jumpV / 6, -1, 1) * .25; armUp = .08; }
     if (!this.workAnim || this.workAnim !== 'crank') this.sweat = Math.max(0, this.sweat - dt * .3);
     this.arms[1].rotation.x = armA; this.arms[0].rotation.x = armB;
     this.arms[0].position.y = this.arms[1].position.y = .62 + armUp;
     if (this.happyT > 0) { this.happyT -= dt; bob += Math.abs(Math.sin(this.t * 11)) * .22; }
     if (this.asleep) bob = Math.sin(this.t * 1.5) * .02;
+    if (air) bob = 0;
     // squash on landing
     this.squash = Math.max(0, this.squash - dt * 4);
     const sq = Math.sin(this.squash * Math.PI) * .15;
-    this.inner.scale.set(1 + sq, 1 - sq - this.sit * .12, 1 + sq);
+    const st = air ? Math.min(1, Math.abs(this.jumpV) / 7) * .12 : 0;
+    this.inner.scale.set(1 + sq - st * .5, 1 - sq - this.sit * .12 + st, 1 + sq - st * .5);
     this.inner.position.y = bob - this.sit * .2;
     this.legs.forEach(l => l.scale.y = 1 - this.sit * .7);
-    this.g.position.set(this.x, this.y, this.z); this.g.rotation.y = this.rotY;
+    this.g.position.set(this.x, this.y + this.jumpY, this.z); this.g.rotation.y = this.rotY;
 
     // gaze: look at a target, else drift toward the camera
     let gx = 0, gy = 0;
@@ -157,7 +188,7 @@ export class Crab {
     // bubble
     if (this.bubT > 0) this.bubT -= dt;
     let show = this.bubT > 0 && this.g.visible && G.mode !== 'title' && G.mode !== 'diary';
-    const p = show ? toScreen(this.x, this.y + this.height + .35 + bob, this.z) : null;
+    const p = show ? toScreen(this.x, this.y + this.jumpY + this.height + .35 + bob, this.z) : null;
     // crabs outside the shot keep their thoughts to themselves
     if (p && (p.behind || p.x < -40 || p.x > innerWidth + 40 || p.y < -40 || p.y > innerHeight + 40)) show = false;
     this.bub.style.opacity = show ? Math.min(1, this.bubT * 3) : 0;

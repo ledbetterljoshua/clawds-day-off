@@ -23,6 +23,7 @@ export const STICKERS = [
   { id: 'pink', g: '🩷', name: 'the pink noodle', hint: 'catch the one pink noodle' },
   { id: 'wish', g: '🎋', name: 'a wish', hint: 'hang a wish on the bamboo' },
   { id: 'chirigiku', g: '🎇', name: '散り菊', hint: 'keep a sparkler alive to the very end' },
+  { id: 'hop', g: '🐇', name: 'ぴょんぴょん', hint: 'jump twenty times in one evening (space, or tap clawd)' },
   { id: 'week', g: '🏅', name: 'summer, written down', hint: 'finish all five evenings' },
 ];
 
