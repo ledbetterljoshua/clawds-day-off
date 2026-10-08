@@ -5,6 +5,8 @@ import { $, $$, esc } from './util.js';
 import { renderer } from './gfx.js';
 import { save } from './save.js';
 import { audio } from './audio.js';
+import { cam } from './camera.js';
+import { clawd } from './crab.js';
 
 const ov = $('#overlay');
 const WEEKDAY_JP = ['日', '月', '火', '水', '木', '金', '土'];
@@ -19,6 +21,16 @@ export const CREDIT = `after <a href="https://x.com/ishuagra02/status/2107488996
 function stampSVG(tier, big = false) {
   const s = STAMPS[tier] || STAMPS.good;
   return `<div class="stamp ${big ? 'big' : ''}" title="${s.en}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="1.5"/>${[0, 72, 144, 216, 288].map(a => `<ellipse cx="50" cy="16" rx="5" ry="8" fill="currentColor" transform="rotate(${a} 50 50)" opacity=".9"/>`).join('')}</svg><span>${s.jp}</span></div>`;
+}
+
+const CREW = [['helper 1', '🍓', 'strawberry'], ['helper 2', '🌿', 'mint'], ['helper 3', '🧊', 'ice']];
+function crewHTML() {
+  const H = save.data.helpers || [];
+  if (!H.some(h => h.days)) return '';
+  return `<div class="crew-note"><div class="pg-kicker">Clawd's crew</div><ul>${CREW.map(([n, ic, sp], i) => {
+    const h = H[i] || { tasks: 0, days: 0 };
+    return `<li><span class="cn-ic">${ic}</span><span class="cn-name">${n} <i>${sp}</i></span><span class="cn-n">${h.tasks} task${h.tasks === 1 ? '' : 's'} · ${h.days} evening${h.days === 1 ? '' : 's'}</span></li>`;
+  }).join('')}</ul></div>`;
 }
 
 function dateOf(def) {
@@ -42,6 +54,8 @@ export const diary = {
 
   showTitle() {
     G.mode = 'title';
+    cam.play(); cam.drift = 1;
+    if (!G.chapter) { clawd.workAnim = 'write'; clawd.faceOverride = -2.0; }
     const next = diary.nextDay(), started = Object.keys(save.data.days).length > 0;
     ov.className = 'title-view';
     ov.innerHTML = `
@@ -53,11 +67,13 @@ export const diary = {
         <div class="cv-actions">
           <button class="go" id="go">${started ? `continue · ${esc(next.title)}` : 'start the week'}</button>
           ${started ? '<button class="ghost" id="book">open the diary</button>' : ''}
+          <button class="ghost icon" id="cvgear" aria-label="settings">⚙</button>
         </div>
         <div class="credit">${CREDIT}</div>
       </div>`;
     $('#go', ov).onclick = () => { audio.init(); onPlay(next); };
     const b = $('#book', ov); if (b) b.onclick = () => { audio.init(); diary.showBook(next); };
+    $('#cvgear', ov).onclick = () => diary.onSettings && diary.onSettings();
   },
 
   // the open diary: the week on the left, one day's page on the right
@@ -71,14 +87,16 @@ export const diary = {
 
   renderWeek() {
     const L = $('#pgL', ov); if (!L) return;
-    L.innerHTML = `<div class="pg-head"><span class="pg-kicker">なつやすみ えにっき</span><h2>Clawd's week</h2></div>
+    const all = chapters.every(c => save.day(c.id)?.done);
+    L.innerHTML = `<div class="pg-head"><span class="pg-kicker">なつやすみ えにっき</span><h2>${all ? 'Clawd\'s summer ✦' : 'Clawd\'s week'}</h2>${all ? '<p class="pg-done">five evenings, all written down. thank you for spending them here.</p>' : ''}</div>
       <ol class="week">${chapters.map((c, i) => {
         const e = save.day(c.id), dt = dateOf(c), open = diary.unlocked(c);
         return `<li><button class="wk ${selected === c ? 'sel' : ''} ${open ? '' : 'locked'}" data-i="${i}" ${open ? '' : 'disabled'}>
           <span class="wk-date">${dt.m}/${dt.d}<i>${dt.wd}</i></span>
           <span class="wk-title"><b>${esc(c.jp)}</b> ${esc(c.title)}</span>
-          <span class="wk-state">${e?.done ? stampSVG(e.stamp) : open ? '<span class="wk-next">tonight</span>' : '🔒'}</span></button></li>`;
+          <span class="wk-state">${e?.done ? (e.photo ? `<img class="wk-thumb" src="${e.photo}" alt="">` : '') + stampSVG(e.stamp) : open ? `<span class="wk-next">${c === diary.nextDay() ? 'tonight' : 'open'}</span>` : '🔒'}</span></button></li>`;
       }).join('')}</ol>
+      ${crewHTML()}
       <div class="pg-foot"><button class="ghost" id="cover">cover</button><span class="credit">${CREDIT}</span></div>`;
     $$('.wk', L).forEach(b => b.onclick = () => { selected = chapters[+b.dataset.i]; diary.renderWeek(); diary.renderPage(selected); audio.sfx('select'); });
     $('#cover', L).onclick = () => diary.showTitle();

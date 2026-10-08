@@ -3,6 +3,7 @@ import { THREE, V3, scene, mesh, group, box, rbox, cyl, sph, toon, canvasTex, CO
 import { G } from './state.js';
 import { $, rand, clamp, lerp, damp, wrapAngle } from './util.js';
 import { audio } from './audio.js';
+import { puff } from './fx.js';
 
 export const crew = [];
 const bubbles = $('#bubbles');
@@ -94,6 +95,8 @@ export class Crab {
       if (this.asleep) this.wake();
       this.x += Math.sign(dx) * Math.min(Math.abs(dx), this.speed * dt * (G.effort > 0 ? 1.6 : 1));
       this.walkT += dt * 13; face = dx > 0 ? Math.PI / 2 : -Math.PI / 2; this.idleT = 0; this.sitTarget = 0;
+      this.dustT = (this.dustT ?? 0) - dt;
+      if (this.dustT < 0 && this.g.visible && this.y < .05) { this.dustT = .28; puff(this.x - Math.sign(dx) * .35 * this.scale, .04, this.z + .1, 1, [.86, .8, .7]); }
     }
     this.rotY += wrapAngle(face - this.rotY) * damp(12, dt);
     this.legs.forEach((l, i) => l.rotation.x = moving ? Math.sin(this.walkT + (i % 2) * Math.PI) * .55 : l.rotation.x * .8);
@@ -138,6 +141,9 @@ export class Crab {
     if (this.gazeTarget) {
       const dxw = this.gazeTarget.x - this.x, dyw = this.gazeTarget.y - (this.y + .8 * this.scale);
       gx = clamp(dxw / 3, -1, 1) * (Math.abs(wrapAngle(this.rotY)) < 1 ? 1 : 0); gy = clamp(-dyw / 3, -1, 1);
+    } else if (G.cursor && G.mode === 'play' && Math.abs(G.cursor.x - this.x) < 5 && Math.abs(wrapAngle(this.rotY)) < 1) {
+      // follow the pointer when it's nearby
+      gx = clamp((G.cursor.x - this.x) / 2.5, -1, 1); gy = clamp(-(G.cursor.y - (this.y + .8 * this.scale)) / 2.5, -1, 1);
     } else { gx = Math.sin(this.t * .37 + this.i) * .25; gy = Math.sin(this.t * .23 + this.i * 2) * .2; }
     this.gaze.x = lerp(this.gaze.x, gx, damp(5, dt)); this.gaze.y = lerp(this.gaze.y, gy, damp(5, dt));
     this.blush = Math.max(0, this.blush - dt * .3);

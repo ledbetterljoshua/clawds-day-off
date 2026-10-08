@@ -15,4 +15,4 @@ export const damp = (k, dt) => 1 - Math.exp(-k * dt);
 export const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const wrapAngle = a => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; };
 export const isTouch = () => matchMedia('(pointer: coarse)').matches;
-export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+export const reducedMotion = () => document.documentElement.dataset.calm === '1' || matchMedia('(prefers-reduced-motion: reduce)').matches;

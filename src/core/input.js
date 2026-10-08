@@ -10,6 +10,7 @@ export const ray = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
 export const held = {};
 export const pointer = { x: -1, y: -1, over: null };
+const lane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -.5), hitPt = new THREE.Vector3();
 let H = null, downAt = null, hits = [];
 
 export function setHits(list) { hits = list; }
@@ -30,6 +31,7 @@ export function pick(e) {
 const canvas = $('#c');
 canvas.addEventListener('pointermove', e => {
   pointer.x = e.clientX; pointer.y = e.clientY;
+  setRay(e); G.cursor = ray.ray.intersectPlane(lane, hitPt) ? hitPt : null;
   if (!H) return;
   if (G.chapter?.pointer) { setRay(e); if (G.chapter.pointer('move', e, ray) === true) return; }
   H.hover(G.mode === 'play' ? pick(e) : null, e);
@@ -47,7 +49,7 @@ canvas.addEventListener('pointerup', e => {
   if (G.mode !== 'play') return;
   H.click(pick(e), e);
 });
-canvas.addEventListener('pointerleave', () => H && H.hover(null));
+canvas.addEventListener('pointerleave', () => { G.cursor = null; H && H.hover(null); });
 
 addEventListener('keydown', e => {
   if (term.isOpen) return;

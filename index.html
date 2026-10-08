@@ -154,6 +154,17 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .wk-state{display:grid;place-items:center;height:42px}
 .wk-state .stamp{width:44px;height:44px}
 .wk-state .stamp span{font-size:6px}
+.wk-state{position:relative;width:58px}
+.wk-thumb{position:absolute;inset:3px 6px;width:46px;height:36px;object-fit:cover;border-radius:3px;opacity:.9}
+.wk-state .stamp{position:absolute;z-index:1;right:-12px;top:-10px;width:34px;height:34px}
+.wk-state .stamp span{display:none}
+.pg-done{font-family:var(--hand);font-size:14px;color:var(--pencil);margin-top:4px}
+.crew-note{border-top:1.5px dashed var(--rule);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.crew-note ul{list-style:none;display:flex;flex-direction:column;gap:4px}
+.crew-note li{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:8px;align-items:baseline;font-size:12.5px}
+.cn-name{font-family:var(--hand);font-weight:600;font-size:15px}
+.cn-name i{font-style:normal;font-weight:400;font-size:12px;color:var(--pencil);margin-left:4px}
+.cn-n{font-size:11px;color:var(--pencil);font-variant-numeric:tabular-nums}
 .wk-next{font-size:10px;color:var(--acc-deep);border:1px dashed var(--acc);border-radius:999px;padding:2px 7px}
 .pg-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .pg-foot .credit{padding:0}
@@ -177,6 +188,19 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .stamp.slam{animation:slam .5s cubic-bezier(.2,1.6,.4,1) both .35s}
 @keyframes slam{from{transform:rotate(-30deg) scale(2.4);opacity:0}to{transform:rotate(-12deg) scale(1);opacity:1}}
 
+#settings{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:rgba(10,8,24,.45);padding:16px;transition:opacity .25s}
+.st-card{width:min(380px,100%);background:var(--paper);color:var(--paper-ink);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.st-head{display:flex;justify-content:space-between;align-items:center;font-family:var(--round);font-size:18px}
+.st-x{background:none;border:0;cursor:pointer;font-size:16px;color:var(--pencil)}
+.st-row{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:13px}
+.st-row input[type=range]{width:150px;accent-color:var(--acc)}
+.st-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--acc)}
+.st-seg{display:flex;border:1.5px solid #cfc8b8;border-radius:999px;overflow:hidden}
+.st-seg button{background:none;border:0;padding:6px 12px;cursor:pointer;font-size:12px;color:var(--paper-ink)}
+.st-seg button.on{background:var(--acc);color:#fff}
+.st-danger{border-top:1.5px dashed var(--rule);padding-top:12px}
+.st-confirm{font-size:12.5px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--stamp)}
+.ghost.icon{padding:10px 14px}
 @media (max-width:760px){
   #overlay.title-view{justify-content:center;align-items:flex-end;padding:16px;background:linear-gradient(180deg,rgba(255,255,255,0) 20%,rgba(30,24,40,.35))}
   .book{grid-template-columns:1fr}
@@ -215,7 +239,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 <canvas id="c"></canvas>
 <div id="bubbles"></div>
 <div id="todo" class="hud panel hidden"></div>
-<div id="clock" class="hud panel hidden"><div class="t">5:00 pm</div><div class="s"></div><div class="btns"><button id="mute">♪ sound on</button><button id="menu" title="end the evening early">end evening</button></div></div>
+<div id="clock" class="hud panel hidden"><div class="t">5:00 pm</div><div class="s"></div><div class="btns"><button id="mute">♪ sound on</button><button id="menu" title="end the evening early">end evening</button><button id="gear" aria-label="settings">⚙</button></div></div>
 <div id="hint" class="hud hidden"></div>
 <div id="crew" class="hud hidden"></div>
 <div id="mini" class="hud panel hidden"></div>

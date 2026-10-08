@@ -54,6 +54,13 @@ export const term = {
 
   clearScreen() { lines.length = 0; },
 
+  // append to the last line (typing effects)
+  amendLast(more) {
+    const L = lines[lines.length - 1]; if (!L) return;
+    L.t += more;
+    const n = body.querySelector('.tl:last-child'); if (n) n.textContent = L.t;
+  },
+
   register(name, run, help = '', opts = {}) { cmds.set(name, { run, help, ...opts }); },
   unregister(name) { cmds.delete(name); },
 

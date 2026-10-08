@@ -15,6 +15,7 @@ import { audio } from './core/audio.js';
 import { diary } from './core/diary.js';
 import { save } from './core/save.js';
 import { mini } from './core/minigames.js';
+import { settings } from './core/settings.js';
 import { firework, sparkle, puff } from './core/fx.js';
 import { initInput, setHits, held, pointer } from './core/input.js';
 import { CHAPTERS } from './chapters/index.js';
@@ -31,6 +32,7 @@ export const game = {
   async boot() {
     save.load();
     applySettings();
+    settings.init();
     diary.init(CHAPTERS, def => game.run(def));
     clawd.reset({ x: -6.8, z: .55, face: -2.0 }); clawd.faceOverride = -2.0;
     helpers.forEach(h => h.reset({ visible: false }));
@@ -145,9 +147,7 @@ async function intro(def, my) {
     clawd.bubT = 0;
   }
   if (my !== runId) return;
-  const L = term.lines[term.lines.length - 1];
-  for (const ch of def.prompt) { L.t += ch; if (!skip.skip) { audio.sfx('type'); await sleep(.05); } }
-  term.print(null);
+  for (const ch of def.prompt) { term.amendLast(ch); if (!skip.skip) { audio.sfx('type'); await sleep(.05); } }
   await sleep(skip.skip ? .05 : .4);
   const count = def.helperCount ?? 3;
   const returning = Object.values(save.data.days).some(d => d.done);
@@ -330,6 +330,8 @@ function applySettings() {
   syncMute();
 }
 $('#mute').onclick = e => { e.stopPropagation(); const m = audio.mute(); save.setting('muted', m); syncMute(); };
+$('#gear').onclick = e => { e.stopPropagation(); settings.open(); };
+diary.onSettings = () => settings.open();
 $('#menu').onclick = e => { e.stopPropagation(); if (G.mode === 'play') { mini.close(true); game.finish({ complete: false, quit: true }); } };
 
 // ── terminal: gameplay commands & natural-language delegation ──
