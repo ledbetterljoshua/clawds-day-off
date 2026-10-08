@@ -4,7 +4,7 @@ import { V3, camera, THREE } from './gfx.js';
 import { G } from './state.js';
 import { clamp, damp, lerp, reducedMotion } from './util.js';
 import { clawd } from './crab.js';
-import { sleep } from './tween.js';
+import { until } from './tween.js';
 
 export const cam = {
   mode: 'play',
@@ -12,25 +12,15 @@ export const cam = {
   tpos: new V3(), tlook: new V3(), fov: 40, tfov: 40, k: 3,
   drift: 0, shake: 0, followX: null,
 
-  play(k = 3) { cam.mode = 'play'; cam.k = k; cam.tfov = 40; cam.drift = 0; },
+  play(k = 3) { cam.mode = 'play'; cam.k = k; cam.tfov = 40; cam.drift = 0; cam._dolly = null; },
   // aim at a shot; cut = jump there instantly
   shot(pos, look, { fov = 40, k = 1.4, cut = false, drift = 0 } = {}) {
-    cam.mode = 'shot'; cam.tpos.copy(pos); cam.tlook.copy(look); cam.tfov = fov; cam.k = k; cam.drift = reducedMotion() ? 0 : drift;
+    cam.mode = 'shot'; cam._dolly = null; cam.tpos.copy(pos); cam.tlook.copy(look); cam.tfov = fov; cam.k = k; cam.drift = reducedMotion() ? 0 : drift;
     if (cut) { cam.pos.copy(pos); cam.look.copy(look); cam.fov = fov; }
   },
   // play a list of { pos:[x,y,z], look:[x,y,z], fov, dur, cut, k, drift, to:{pos,look} } shots
   async shots(list, skipRef) {
-    for (const s of list) {
-      if (skipRef && skipRef.skip) return;
-      cam.shot(new V3(...s.pos), new V3(...s.look), { fov: s.fov ?? 40, k: s.k ?? 1.2, cut: s.cut ?? true, drift: s.drift ?? .25 });
-      if (s.to) { // dolly toward a second framing during the shot
-        const p0 = new V3(...s.pos), p1 = new V3(...s.to.pos), l0 = new V3(...s.look), l1 = new V3(...(s.to.look || s.look));
-        cam._dolly = { p0, p1, l0, l1, t0: G.time, dur: s.dur ?? 2.5 };
-      } else cam._dolly = null;
-      s.onStart && s.onStart();
-      await sleep(s.dur ?? 2.5);
-    }
-    cam._dolly = null;
+    try { await playShots(list, skipRef); } finally { cam._dolly = null; }
   },
   frame(out = cam) {
     const asp = innerWidth / innerHeight, t = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
@@ -58,3 +48,16 @@ export const cam = {
   },
 };
 cam.frame(); cam.pos.copy(cam.tpos); cam.look.copy(cam.tlook);
+
+async function playShots(list, skipRef) {
+  for (const s of list) {
+    if (skipRef && skipRef.skip) return;
+    cam.shot(new V3(...s.pos), new V3(...s.look), { fov: s.fov ?? 40, k: s.k ?? 1.2, cut: s.cut ?? true, drift: s.drift ?? .25 });
+    if (s.to) { // dolly toward a second framing during the shot
+      const p0 = new V3(...s.pos), p1 = new V3(...s.to.pos), l0 = new V3(...s.look), l1 = new V3(...(s.to.look || s.look));
+      cam._dolly = { p0, p1, l0, l1, t0: G.time, dur: s.dur ?? 2.5 };
+    }
+    s.onStart && s.onStart();
+    await until(() => skipRef && skipRef.skip, s.dur ?? 2.5);
+  }
+}
