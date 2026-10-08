@@ -101,6 +101,8 @@ export const sky = {
   fireflies: 0,      // 0..1, glowing fireflies over the trees
   rainbow: 0,        // 0..1, after a shower
   milkyWay: 0,       // 0..1, extra for the 'starry' preset
+  starPair: 0,       // 0..1, Vega (Orihime) and Altair (Hikoboshi) brighten
+  stars: { vega: new V3(-.35, .62, -1).normalize(), altair: new V3(.38, .5, -1).normalize() },
   get preset() { return presetName; },
   setPreset(name) { presetName = name in PRESETS ? name : 'clear'; preset = PRESETS[presetName]; },
   flash(col, amt = 1) { G.flash = amt; G.flashCol = (G.flashCol || new THREE.Color()).copy(col); },

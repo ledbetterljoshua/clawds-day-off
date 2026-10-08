@@ -38,6 +38,9 @@ export const audio = {
   setAmbience(o) { Object.assign(A.amb, o); },
 
   register(name, fn) { registry.set(name, fn); },
+  has(name) { return registry.has(name); },
+  // persistent loops (sizzle, water, rain, sparkler…): level 0 stops, >0 starts/sets the gain
+  loop(name, level = 1) {},
 
   // play a named sound; opts are passed to the sound fn. Throttled per-name by opts.gap (seconds).
   sfx(name, opts = {}) {

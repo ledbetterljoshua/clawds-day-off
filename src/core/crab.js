@@ -2,6 +2,7 @@
 import { THREE, V3, scene, mesh, group, box, rbox, cyl, sph, toon, canvasTex, COL, toScreen, camera } from './gfx.js';
 import { G } from './state.js';
 import { $, rand, clamp, lerp, damp, wrapAngle } from './util.js';
+import { audio } from './audio.js';
 
 export const crew = [];
 const bubbles = $('#bubbles');
@@ -74,7 +75,10 @@ export class Crab {
   }
 
   setCarry(v) { this.carry = v; this.carryMesh.visible = !!v; }
-  say(t, dur = 2.4) { if (!t) return; this.bub.textContent = t; this.bubT = dur; this.lastSay = t; }
+  say(t, dur = 2.4) {
+    if (!t) return; this.bub.textContent = t; this.bubT = dur; this.lastSay = t;
+    if (G.mode === 'play' || G.mode === 'ending' || G.mode === 'intro') audio.sfx('voice', { i: this.i, n: t.length, gap: .15 });
+  }
   mood(e, dur = 1.4) { this.expr = e; this.exprT = dur; }
   hop(h = .6) { this.happyT = Math.max(this.happyT, h); }
   lookAt(v) { this.gazeTarget = v; }   // world V3 or null (looks at camera/cursor)
