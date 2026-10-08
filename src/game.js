@@ -91,6 +91,12 @@ export const game = {
     clawd.pending = null;
     try { await def.ending(result, game); } catch (e) { console.error(e); }
     if (my !== runId) return;
+    if (result.quit) {
+      // ending early doesn't fill in the diary page or unlock tomorrow
+      audio.setMood('quiet');
+      diary.showBook(def);
+      return;
+    }
     const photo = lastPhoto || await game.snap();
     const text = def.diary ? def.diary(result, G.stats) : { jp: '', lines: [] };
     const stamp = result.stamp || (result.complete ? (result.perfect ? 'perfect' : 'good') : 'tried');
@@ -149,7 +155,8 @@ async function intro(def, my) {
   skipBtn.onclick = () => { skip.skip = true; introTap && introTap(); };
   if (def.introShots && !skip.skip) await cam.shots(def.introShots, skip);
   if (my !== runId) return;
-  cam.shot(...introFrame(), { k: 1.6 });
+  // after an opening shot list, cut to the laptop rather than flying through the set
+  cam.shot(...introFrame(), { k: 1.6, cut: !!def.introShots && !skip.skip });
   clawd.mood('focus', 99);
   const lines = def.intro || [['$ npm test'], ['  ✓ 42 passing', '#7bd88f'], ['$ git push'], ['  done for today ✦', '#f2c14e']];
   await sleep(skip.skip ? .1 : .6);

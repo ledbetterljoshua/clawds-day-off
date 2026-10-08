@@ -156,10 +156,12 @@ export class Crab {
 
     // bubble
     if (this.bubT > 0) this.bubT -= dt;
-    const show = this.bubT > 0 && this.g.visible && G.mode !== 'title' && G.mode !== 'diary';
+    let show = this.bubT > 0 && this.g.visible && G.mode !== 'title' && G.mode !== 'diary';
+    const p = show ? toScreen(this.x, this.y + this.height + .35 + bob, this.z) : null;
+    // crabs outside the shot keep their thoughts to themselves
+    if (p && (p.behind || p.x < -40 || p.x > innerWidth + 40 || p.y < -40 || p.y > innerHeight + 40)) show = false;
     this.bub.style.opacity = show ? Math.min(1, this.bubT * 3) : 0;
     if (show) {
-      const p = toScreen(this.x, this.y + this.height + .35 + bob, this.z);
       const hw = this.bub.offsetWidth / 2 + 8;
       this.bub.style.left = clamp(p.x, hw, innerWidth - hw) + 'px';
       this.bub.style.top = Math.max(30, p.y) + 'px';
