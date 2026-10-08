@@ -1,7 +1,7 @@
 // Sky dome, painted clouds, sun/moon/stars, and the lighting rig. Everything is driven by
 // G.phase (0 = afternoon, 1 = night) and the day's preset. Chapters drive the weather by
 // assigning levels (0..1): sky.rain = .8. A level a chapter never touches follows the preset.
-import { THREE, V3, scene, camera, toon, renderer } from './gfx.js';
+import { THREE, V3, scene, camera, toon, renderer, canvasTex } from './gfx.js';
 import { lerp, clamp, rand, smooth } from './util.js';
 import { G } from './state.js';
 import { world } from './world.js';
@@ -13,7 +13,6 @@ const qp = G.dev.get('q');
 const autoLow = matchMedia('(pointer: coarse)').matches || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
   || (navigator.hardwareConcurrency || 8) <= 4 || Math.min(screen.width, screen.height) < 600;
 const tier = qp === 'low' || qp === 'high' ? qp : autoLow ? 'low' : 'high';
-if (tier === 'low') renderer.shadowMap.type = THREE.PCFShadowMap;
 
 // ── lights ──
 const hemi = new THREE.HemisphereLight(0xbcd8ff, 0xa08060, .9); scene.add(hemi);
@@ -21,7 +20,7 @@ const key = new THREE.DirectionalLight(0xfff1dc, 2.4);
 key.position.set(-6, 12, 9); key.castShadow = true;
 key.shadow.mapSize.set(tier === 'low' ? 1024 : 2048, tier === 'low' ? 1024 : 2048);
 Object.assign(key.shadow.camera, { left: -14, right: 14, top: 10, bottom: -10, near: 1, far: 50 });
-key.shadow.bias = -0.0004; key.shadow.normalBias = 0.03; key.shadow.radius = 3;
+key.shadow.bias = -0.0004; key.shadow.normalBias = 0.03; key.shadow.radius = 1.5;
 scene.add(key, key.target);
 const rim = new THREE.DirectionalLight(0xffc070, .8); scene.add(rim);
 // warm glow from the lantern string; three lights on high so both ends of the counter catch it
@@ -29,6 +28,25 @@ const lanterns = (tier === 'low' ? [[0, 4.3, .8]] : [[-6.4, 4.5, .7], [0, 4.2, .
   const l = new THREE.PointLight(0xffa860, 0, 22, 1.5); l.position.set(x, y, z); scene.add(l); return l;
 });
 const lantern = lanterns[Math.floor(lanterns.length / 2)];
+
+// komorebi: an unseen canopy between the sun and the counter, so dappled leaf shadows drift
+// over the right end of the counter (and anyone standing there) as the breeze moves it
+const leafTex = canvasTex(1024, 512, (x, w, h) => {
+  x.fillStyle = '#000';
+  const sprig = (cx, cy, n, spread) => {
+    for (let i = 0; i < n; i++) {
+      const a = rand(0, Math.PI * 2), r = rand(0, spread);
+      x.save(); x.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r * .6); x.rotate(rand(0, Math.PI));
+      x.beginPath(); x.ellipse(0, 0, rand(12, 26), rand(5, 10), 0, 0, Math.PI * 2); x.fill(); x.restore();
+    }
+  };
+  for (let i = 0; i < 46; i++) sprig(rand(0, w), rand(h * .05, h * .95), 22, rand(36, 80));
+  x.lineWidth = 7; x.lineCap = 'round'; x.beginPath(); x.moveTo(w, h * .3); x.quadraticCurveTo(w * .6, h * .45, w * .15, h * .7); x.stroke();
+});
+const canopy = new THREE.Mesh(new THREE.PlaneGeometry(13, 6.5), new THREE.MeshBasicMaterial({ map: leafTex, alphaTest: .5, side: THREE.DoubleSide, colorWrite: false, depthWrite: false }));
+canopy.castShadow = true; canopy.frustumCulled = false; canopy.userData.noInk = true;
+scene.add(canopy);
+const CANOPY_AT = new V3(7.5, 0, -.2), _Z = new V3(0, 0, 1);
 
 // ── tone curve inverse: the palette is authored as the colors we want on screen ──
 const ACES_IN = new THREE.Matrix3().fromArray([.59719, .07600, .02840, .35458, .90834, .13383, .04823, .01566, .83777]);
@@ -367,7 +385,15 @@ const lv = {}, manual = {};
 LEVELS.forEach(k => { lv[k] = 0; manual[k] = false; });
 const DEV = { overcast: 'overcast', rain: 'rain', fireflies: 'fireflies', rainbow: 'rainbow', milky: 'milkyWay', pair: 'starPair', shimmer: 'shimmer' };
 let drift = 0, flashT = 0, lastRain = -1;
-const moonDir = new V3(), lightDir = new V3();
+const moonDir = new V3(), lightDir = new V3(), keyDir = new V3();
+
+// cel balance: with a two-tone ramp the shadow side gets only the sky fill, so the fill carries
+// more of the light than a smooth-shaded scene would, and its color is what tints the shadows
+const CEL = { key: .5, fill: 1.35, fillSat: 1.5, bounce: .45, minEl: .5 };
+function saturate(c, k) {
+  const l = c.r * .2126 + c.g * .7152 + c.b * .0722;
+  c.setRGB(Math.max(0, l + (c.r - l) * k), Math.max(0, l + (c.g - l) * k), Math.max(0, l + (c.b - l) * k));
+}
 
 export const sky = {
   lanternScale: 1,        // chapters can dim the lantern string (sparklers want the dark)
@@ -433,6 +459,14 @@ export const sky = {
     u.uOvercast.value = o; u.uRain.value = rain; u.uRainbow.value = lv.rainbow;
     // clouds take their light from the moon on a moonlit night, else from the sun (even below the horizon)
     lightDir.copy(moonOn && sd.y < 0 ? moonDir : sd);
+    // the key light comes from where the sun (or moon) is, lifted so the counter never drops into shade
+    keyDir.copy(lightDir); keyDir.y = Math.max(keyDir.y, CEL.minEl); keyDir.normalize();
+    key.position.copy(keyDir).multiplyScalar(22);
+    canopy.visible = key.intensity > .3 && night < .9;
+    canopy.position.copy(CANOPY_AT).addScaledVector(keyDir, 6.5);
+    canopy.quaternion.setFromUnitVectors(_Z, keyDir);
+    canopy.rotateZ(Math.sin(G.time * .8) * .025 * (world.wind || .5));
+    canopy.position.x += Math.sin(G.time * .53) * .12 * (world.wind || .5);
     u.uLightAz.value = Math.atan2(lightDir.x, -lightDir.z); u.uLightEl.value = Math.asin(lightDir.y);
     drift += dt * .0006 * (.5 + (world.wind || .5));
     u.uDrift.value = drift; u.uTime.value = G.time;
@@ -443,11 +477,12 @@ export const sky = {
 
     // scene lighting
     toScene(Pl.haze, scene.fog.color); scene.fog.near = Pl.fogNear; scene.fog.far = Pl.fogFar;
-    key.color.copy(Pl.key); key.intensity = Pl.keyI;
+    key.color.copy(Pl.key); key.intensity = Pl.keyI * CEL.key;
     if (moonOn && sd.y < 0) { rim.color.copy(u.uMoonCol.value); rim.position.copy(moonDir).multiplyScalar(30); }
     else { rim.color.copy(Pl.sun); rim.position.copy(sd).multiplyScalar(30); }
     rim.intensity = Pl.rimI;
-    hemi.color.copy(Pl.hs); hemi.groundColor.copy(Pl.hg); hemi.intensity = Pl.hI + (G.flash || 0) * .5 + flick * .8;
+    hemi.color.copy(Pl.hs); saturate(hemi.color, CEL.fillSat); hemi.groundColor.copy(Pl.hg).lerp(Pl.key, CEL.bounce);
+    hemi.intensity = Pl.hI * CEL.fill + (G.flash || 0) * .5 + flick * .8;
     const c = world.cityMat;
     c.color.copy(Pl.city);
     c.emissiveIntensity = Math.max(smooth(.62, .95, p), moonOn) * Pl.cityLit * (1 - .3 * o);

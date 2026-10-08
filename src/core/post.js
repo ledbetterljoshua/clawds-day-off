@@ -9,6 +9,7 @@ import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { G } from './state.js';
 import { sky } from './sky.js';
+import { InkPass } from './ink.js';
 
 const FinalShader = {
   uniforms: {
@@ -54,17 +55,21 @@ class FinalPass extends Pass {
   }
 }
 
-let composer = null, bloom = null, bokeh = null, final = null, tier = sky.tier, dofOn = false;
+let composer = null, ink = null, bloom = null, bokeh = null, final = null, tier = sky.tier, dofOn = false;
 const frameTimes = []; let lastT = 0, watched = false;
+const GLOW = { s: .04, t: .8, r: .65 };
 
 function makeTarget() {
   const pr = renderer.getPixelRatio(), w = Math.max(1, Math.floor(innerWidth * pr)), h = Math.max(1, Math.floor(innerHeight * pr));
   return new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType, samples: tier === 'low' ? 0 : pr >= 2 ? 2 : 4 });
 }
 function build() {
-  composer?.dispose?.(); bloom?.dispose?.(); bokeh?.dispose?.(); final?.material.dispose();
+  composer?.dispose?.(); ink?.dispose(); bloom?.dispose?.(); bokeh?.dispose?.(); final?.material.dispose();
   composer = new EffectComposer(renderer, makeTarget());
   composer.addPass(new RenderPass(scene, camera));
+  ink = new InkPass();
+  ink.enabled = post.ink;
+  composer.addPass(ink);
   bokeh = new BokehPass(scene, camera, { focus: 10, aperture: .002, maxblur: .008 });
   bokeh.enabled = dofOn && tier !== 'low';
   composer.addPass(bokeh);
@@ -78,6 +83,7 @@ function build() {
 
 export const post = {
   enabled: true,
+  ink: !G.dev.has('noink'),
   get quality() { return tier; },
   set quality(q) {
     if (q !== 'low' && q !== 'high') return;
@@ -110,7 +116,9 @@ export const post = {
   render() {
     if (!composer || !post.enabled) { renderer.render(scene, camera); return; }
     const L = sky.look, u = final.material.uniforms;
-    bloom.strength = L.bloomS + L.flash * .4; bloom.threshold = L.bloomT; bloom.radius = .55;
+    ink.enabled = post.ink;
+    // a soft diffusion glow over the bright parts of the frame, the way anime compositing adds it
+    bloom.strength = L.bloomS + GLOW.s + L.flash * .4; bloom.threshold = L.bloomT * GLOW.t; bloom.radius = GLOW.r;
     u.uExposure.value = renderer.toneMappingExposure;
     u.uVig.value = L.vig; u.uWarm.value = L.warm; u.uCool.value = L.cool; u.uSat.value = L.sat;
     u.uGrain.value = L.grain; u.uTime.value = G.time;

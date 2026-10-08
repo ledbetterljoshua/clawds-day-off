@@ -1,6 +1,6 @@
 // The balcony that every evening happens on: counter, pergola, lanterns, the city below,
 // the laptop. Chapter props go in the chapter's own root group, not here.
-import { THREE, V3, scene, mesh, group, box, rbox, cyl, sph, toon, canvasTex, MAT, hitMat } from './gfx.js';
+import { THREE, V3, scene, mesh, group, box, rbox, cyl, sph, toon, canvasTex, MAT, COL, hitMat } from './gfx.js';
 import { rand, lerp } from './util.js';
 import { termTex } from './terminal.js';
 import { G } from './state.js';
@@ -39,9 +39,36 @@ function wire(y, z, sag) {
 wire(17, -45, 4); wire(18.4, -45, 4.2); wire(19.8, -46, 4.4);
 
 // ── balcony ──
-mesh(box(23, .28, 2.4), MAT.wood, 0, -.14, 0);
+// painted plank grain: long soft streaks, a few knots, nail holes. Greyscale, so it only
+// modulates the wood's own color under the cel lighting.
+function grainTex(planks, holes) {
+  const t = canvasTex(1024, 256, (x, w, h) => {
+    x.fillStyle = '#fff'; x.fillRect(0, 0, w, h);
+    const ph = h / planks;
+    for (let p = 0; p < planks; p++) {
+      const y0 = p * ph;
+      x.fillStyle = `rgba(120,80,50,${rand(.02, .1)})`; x.fillRect(0, y0, w, ph);
+      for (let i = 0; i < 26; i++) {
+        const y = y0 + rand(2, ph - 2), a = rand(.05, .16), amp = rand(1, 4), f = rand(.004, .012), ph0 = rand(0, 6);
+        x.strokeStyle = `rgba(110,70,40,${a})`; x.lineWidth = rand(.8, 2.4); x.beginPath();
+        for (let u = 0; u <= w; u += 16) x.lineTo(u, y + Math.sin(u * f + ph0) * amp);
+        x.stroke();
+      }
+      if (Math.random() < .7) {
+        const kx = rand(60, w - 60), ky = y0 + rand(ph * .3, ph * .7);
+        for (let r = 3; r > 0; r--) { x.strokeStyle = `rgba(100,60,30,${.12 + .06 * r})`; x.lineWidth = 1.5; x.beginPath(); x.ellipse(kx, ky, 6 + r * 7, 2 + r * 2, 0, 0, Math.PI * 2); x.stroke(); }
+      }
+      if (holes) for (const u of [w * .25, w * .75]) { x.fillStyle = 'rgba(60,40,40,.55)'; x.beginPath(); x.arc(u, y0 + ph * .5, 3.2, 0, Math.PI * 2); x.fill(); }
+    }
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+const counterTop = grainTex(4, true); counterTop.repeat.set(4, 1);
+const boardTex = grainTex(2, true); boardTex.repeat.set(4, 1);
+mesh(box(23, .28, 2.4), toon(COL.wood, { map: counterTop }), 0, -.14, 0);
 for (const z of [-.6, 0, .6]) mesh(box(23, .01, .02), MAT.woodDark, 0, .002, z, scene, false);
-mesh(box(23, 1.1, .12), MAT.woodDark, 0, -.8, 1.16);
+mesh(box(23, 1.1, .12), toon(0xb07a4e, { map: boardTex }), 0, -.8, 1.16);
 for (let x = -11; x <= 11; x += .8) mesh(box(.14, 3, .14), MAT.woodDark, x, -2.8, .9);
 for (const x of [-10.9, 10.9]) mesh(box(.35, 9.5, .35), MAT.woodDark, x, 1.5, -1.5);
 mesh(box(22.5, .35, .35), MAT.woodDark, 0, 6.2, -1.5);
@@ -50,7 +77,7 @@ mesh(box(22.5, .35, .35), MAT.woodDark, 0, 6.2, -1.5);
 export const lanternY = t => 5.7 - 1.1 * (1 - Math.pow(2 * t - 1, 2));
 {
   const pts = []; for (let i = 0; i <= 30; i++) { const t = i / 30; pts.push(new V3(lerp(-10.7, 10.7, t), lanternY(t), -1.3)); }
-  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x302020 })));
+  mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, .016, 5), toon(0x3a2a2e), 0, 0, 0, scene, false);
   for (let i = 0; i < 7; i++) {
     const t = .1 + i * .8 / 6, x = lerp(-10.7, 10.7, t), y = lanternY(t);
     const mat = toon(i % 2 ? 0xf3ece2 : 0xd8343c, { emissive: i % 2 ? 0xc89a60 : 0xff5040, emissiveIntensity: .05 });

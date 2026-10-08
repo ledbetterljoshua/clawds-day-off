@@ -7,7 +7,7 @@ export const V3 = THREE.Vector3;
 export const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap; // crisp painted shadow shapes, not soft CG penumbras
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -26,9 +26,22 @@ export function resize() {
 }
 addEventListener('resize', resize);
 
-// 3-step toon ramp shared by everything
-export const gradTex = new THREE.DataTexture(new Uint8Array([120, 120, 120, 255, 190, 190, 190, 255, 255, 255, 255, 255]), 3, 1);
-gradTex.minFilter = gradTex.magFilter = THREE.NearestFilter; gradTex.needsUpdate = true;
+// two-tone cel ramp shared by everything, with a slightly soft terminator. Turned-away faces keep
+// half the key (form shading stays gentle, as on the film's characters); cast shadows lose all
+// of it and fall to the cool sky fill
+export const gradTex = (() => {
+  const N = 64, d = new Uint8Array(N * 4);
+  for (let i = 0; i < N; i++) { const t = Math.min(1, Math.max(0, ((i + .5) / N - .5) / .07)), v = Math.round(255 * (.75 + .25 * t * t * (3 - 2 * t))); d.set([v, v, v, 255], i * 4); }
+  const t = new THREE.DataTexture(d, N, 1); t.minFilter = t.magFilter = THREE.LinearFilter; t.needsUpdate = true;
+  return t;
+})();
+
+// the shadow side (lit only by the sky fill) sees a more saturated albedo, so shadows deepen in
+// hue instead of going grey: orange shades to red-orange, mint to blue
+THREE.ShaderChunk.lights_toon_pars_fragment = THREE.ShaderChunk.lights_toon_pars_fragment.replace(
+  'reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );',
+  `float celL = dot( material.diffuseColor, vec3( .2126, .7152, .0722 ) );
+  reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( max( mix( vec3( celL ), material.diffuseColor, 1.2 ), 0. ) );`);
 
 export const toon = (color, o = {}) => new THREE.MeshToonMaterial({ color, gradientMap: gradTex, ...o });
 
@@ -62,7 +75,7 @@ export const dotTex = canvasTex(64, 64, x => {
 });
 
 // shared palette
-export const COL = { orange: 0xd97757, wood: 0xc8935c, woodDark: 0x8a5a36, terracotta: 0xc0673f, teal: 0x5fb3b8, metal: 0xb8bcc4, red: 0xd8343c, leaf: 0x4caf50 };
+export const COL = { orange: 0xd97757, wood: 0xc8935c, woodDark: 0xa0683f, terracotta: 0xc0673f, teal: 0x5fb3b8, metal: 0xb8bcc4, red: 0xd8343c, leaf: 0x4caf50 };
 export const MAT = {
   wood: toon(COL.wood), woodDark: toon(COL.woodDark), woodLight: toon(0xe0b27a), terracotta: toon(COL.terracotta),
   metal: toon(COL.metal), red: toon(COL.red), teal: toon(COL.teal), leaf: toon(COL.leaf), white: toon(0xf4f1ec), dark: toon(0x2a2832),

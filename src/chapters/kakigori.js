@@ -86,7 +86,7 @@ function build(root) {
   P.strawWhole = group(root, 4.45, .3, -.35);
   {
     const sp = [[0, -.26], [.12, -.18], [.2, 0], [.19, .12], [.1, .2], [0, .21]].map(([a, b]) => new THREE.Vector2(a, b));
-    mesh(new THREE.LatheGeometry(sp, 20), strawMat(), 0, 0, 0, P.strawWhole);
+    mesh(new THREE.LatheGeometry(new THREE.SplineCurve(sp).getPoints(28), 36), strawMat(), 0, 0, 0, P.strawWhole);
     mesh(new THREE.ConeGeometry(.15, .07, 6), MAT.leaf, 0, .23, 0, P.strawWhole).rotation.x = Math.PI;
     P.strawWhole.rotation.z = .2;
   }
