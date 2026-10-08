@@ -158,7 +158,7 @@ async function intro(def, my) {
   await sleep(skip.skip ? .05 : .5);
   for (let i = 0; i < count; i++) {
     const h = helpers[i], mem = save.data.helpers[i];
-    term.log(`  ◆ ${h.name}  ${h.specName}${returning && mem.tasks ? `  · ${mem.tasks} tasks remembered` : ''}`, '#d97757');
+    term.log(`  ◆ ${h.name}  ${h.specName}${returning && mem.tasks ? `  · ${mem.tasks} task${mem.tasks === 1 ? '' : 's'} remembered` : ''}`, '#d97757');
     spawnHelper(h, LANDING[i]);
     await sleep(skip.skip ? .15 : .55);
   }

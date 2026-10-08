@@ -218,7 +218,14 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
   .pg.left{background:var(--paper)}
 }
 @media (max-width:700px){
-  #todo{font-size:11px;min-width:0;padding:9px 11px;line-height:1.6}
+  #todo{font-size:11px;min-width:0;max-width:calc(100vw - 150px);padding:9px 11px;line-height:1.6}
+  #todo .th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  #todo .th .dot{display:inline-block;margin-right:6px}
+  #clock .s{display:none}
+  #clock .btns{gap:6px}
+  #clock #menu{display:none}
+  .cv-day b{font-size:12px}
+  .cv-day .stamp{right:-6px;top:-12px;width:26px;height:26px}
   #todo .who{display:none}
   #clock{padding:8px 10px}
   #clock .t{font-size:14px}
