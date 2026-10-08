@@ -73,6 +73,23 @@ for (let x = -11; x <= 11; x += .8) mesh(box(.14, 3, .14), MAT.woodDark, x, -2.8
 for (const x of [-10.9, 10.9]) mesh(box(.35, 9.5, .35), MAT.woodDark, x, 1.5, -1.5);
 mesh(box(22.5, .35, .35), MAT.woodDark, 0, 6.2, -1.5);
 
+// chōchin paper: bamboo ribs, and a brushed character on the white ones (front is u = .25)
+function lanternTex(ch) {
+  const draw = (x, w, h) => {
+    x.fillStyle = '#fff'; x.fillRect(0, 0, w, h);
+    x.fillStyle = 'rgba(70,40,30,.28)';
+    for (let k = 1; k < 11; k++) x.fillRect(0, k * h / 11 - 1, w, 2);
+    if (ch) {
+      x.fillStyle = '#c8303a'; x.font = '600 58px "Klee One", serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillText(ch, w * .25, h * .52); x.fillText(ch, w * .75, h * .52);
+    }
+  };
+  const t = canvasTex(256, 128, draw);
+  // the brush font may still be loading; repaint once it's there
+  if (ch) document.fonts?.load('600 58px "Klee One"', ch).then(() => { draw(t.userData.x, 256, 128); t.needsUpdate = true; }).catch(() => { });
+  return t;
+}
+
 // lantern string
 export const lanternY = t => 5.7 - 1.1 * (1 - Math.pow(2 * t - 1, 2));
 {
@@ -80,7 +97,8 @@ export const lanternY = t => 5.7 - 1.1 * (1 - Math.pow(2 * t - 1, 2));
   mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, .016, 5), toon(0x3a2a2e), 0, 0, 0, scene, false);
   for (let i = 0; i < 7; i++) {
     const t = .1 + i * .8 / 6, x = lerp(-10.7, 10.7, t), y = lanternY(t);
-    const mat = toon(i % 2 ? 0xf3ece2 : 0xd8343c, { emissive: i % 2 ? 0xc89a60 : 0xff5040, emissiveIntensity: .05 });
+    const tex = lanternTex(i % 2 ? '氷夏祭'[(i >> 1) % 3] : '');
+    const mat = toon(i % 2 ? 0xf3ece2 : 0xd8343c, { map: tex, emissive: i % 2 ? 0xc89a60 : 0xff5040, emissiveMap: tex, emissiveIntensity: .05 });
     world.lanternMats.push(mat);
     const pivot = group(scene, x, y, -1.3);
     const l = mesh(sph(.32, 18, 12), mat, 0, -.45, 0, pivot); l.scale.y = 1.15;
@@ -109,14 +127,70 @@ export const lanternY = t => 5.7 - 1.1 * (1 - Math.pow(2 * t - 1, 2));
   world.furin = { pivot, clapper, bell, paper, swing: 0, v: 0, lastRing: 0 };
 }
 
+// a flat serrated leaf, base at the origin pointing +y, cupped along its midrib
+const LEAF = (() => {
+  const L = .42, W = .26, N = 28, pts = [];
+  const hw = t => W * .5 * Math.pow(Math.sin(Math.PI * Math.min(t, .98)), .7) * (t > .25 ? 1 + .14 * ((t * 9) % 1) : 1);
+  for (let i = 0; i <= N; i++) { const t = i / N; pts.push(new THREE.Vector2(hw(t), t * L)); }
+  for (let i = N; i >= 0; i--) { const t = i / N; pts.push(new THREE.Vector2(-hw(t), t * L)); }
+  const g = new THREE.ShapeGeometry(new THREE.Shape(pts), 1), p = g.attributes.position, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i);
+    uv.setXY(i, x / W + .5, y / L);
+    p.setZ(i, (x / W) * (x / W) * .12 - (y / L) * (y / L) * .06);
+  }
+  g.computeVertexNormals();
+  return g;
+})();
+const veinTex = canvasTex(128, 128, (x, w, h) => {
+  x.fillStyle = '#fff'; x.fillRect(0, 0, w, h);
+  x.strokeStyle = 'rgba(40,70,30,.35)'; x.lineCap = 'round';
+  x.lineWidth = 3; x.beginPath(); x.moveTo(w / 2, h); x.lineTo(w / 2, 4); x.stroke();
+  x.lineWidth = 1.6;
+  for (let k = 1; k < 7; k++) { const y = h - k * h / 7.5; for (const s of [-1, 1]) { x.beginPath(); x.moveTo(w / 2, y); x.quadraticCurveTo(w / 2 + s * w * .2, y - 6, w / 2 + s * w * .42, y - 16); x.stroke(); } }
+});
+veinTex.flipY = false;
+
 // decor that lives on the balcony all week
 mesh(cyl(.5, .38, .8), MAT.terracotta, 8.45, .4, -.6);
+mesh(cyl(.46, .46, .02), toon(0x4a3326), 8.45, .79, -.6, scene, false);
+// a strawberry plant like the one on the film's railing: trifoliate serrated leaves on long
+// stems, and one pale berry that hasn't ripened yet
 {
-  const lm = toon(0x3f9348);
-  for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2; const m = mesh(sph(.28, 12, 8), lm, 8.45 + Math.cos(a) * .3, 1.25 + rand(0, .5), -.6 + Math.sin(a) * .3); m.scale.set(.45, 1.6, .16); m.rotation.set(Math.sin(a) * .6, a, -Math.cos(a) * .6); }
+  const plant = group(scene, 8.45, .8, -.6);
+  const leafMat = toon(0x4f9a48, { map: veinTex, side: THREE.DoubleSide }), stemMat = toon(0x5f8f45);
+  for (let i = 0; i < 8; i++) {
+    const a = i / 8 * Math.PI * 2 + rand(-.3, .3), out = rand(.3, .65), hgt = rand(.45, 1.2);
+    const tip = new V3(Math.cos(a) * out, hgt, Math.sin(a) * out);
+    const curve = new THREE.QuadraticBezierCurve3(new V3(Math.cos(a) * .05, 0, Math.sin(a) * .05), new V3(Math.cos(a) * out * .2, hgt * .8, Math.sin(a) * out * .2), tip);
+    mesh(new THREE.TubeGeometry(curve, 10, .014, 4), stemMat, 0, 0, 0, plant);
+    const head = group(plant, tip.x, tip.y, tip.z);
+    head.rotation.y = -a + Math.PI / 2;
+    for (const k of [-1, 0, 1]) {
+      const l = mesh(LEAF, leafMat, 0, 0, 0, head);
+      l.rotation.set(-.6 + k * k * .25, 0, k * .8);
+      l.scale.setScalar(k ? 1.25 : 1.5);
+    }
+    if (i === 2) {
+      const berry = group(plant, tip.x * .7, tip.y * .55, tip.z * .7);
+      mesh(cyl(.006, .006, .3, 4), stemMat, 0, .1, 0, berry);
+      const b = mesh(sph(.06, 14, 10), toon(0xf2ead2), 0, -.07, 0, berry); b.scale.y = 1.25;
+      mesh(new THREE.ConeGeometry(.05, .03, 6), stemMat, 0, -.005, 0, berry).rotation.x = Math.PI;
+    }
+  }
 }
 mesh(rbox(.9, .45, .5, .06), MAT.white, 6.9, .22, -.65);
-for (let i = 0; i < 5; i++) mesh(new THREE.ConeGeometry(.08, .28, 6), toon(0x7aa874), 6.6 + i * .15, .55, -.65 + rand(-.1, .1));
+// two blue-green echeveria rosettes in the white planter, like the succulent in the film
+{
+  const sm = toon(0x6fa8a4), sg = new THREE.ConeGeometry(.045, .2, 5);
+  for (const [cx, n] of [[6.68, 11], [7.1, 9]]) {
+    for (let i = 0; i < n; i++) {
+      const ring = i < 6 ? 0 : 1, a = i * 2.4, tilt = ring ? .45 : 1.05;
+      const m = mesh(sg, sm, cx + Math.cos(a) * (ring ? .03 : .09), .47 + ring * .04, -.65 + Math.sin(a) * (ring ? .03 : .09), scene, false);
+      m.rotation.set(0, -a, 0); m.rotateZ(-tilt); m.translateY(.07);
+    }
+  }
+}
 
 // ── laptop ──
 world.laptop = group(scene, -8.4, 0, -.3); world.laptop.rotation.y = .2;
