@@ -409,6 +409,14 @@ R('/bug', () => 'no bugs on the balcony. (a mosquito drifts past, unbothered)', 
 R('/vim', () => 'vim mode enabled. good luck getting out.', 'toggle vim mode');
 R('/permissions', () => 'allow: everything. it\'s summer.', 'view permissions');
 R('/resume', () => { setTimeout(() => { if (G.mode !== 'play') diary.showBook(); }, 200); return G.mode === 'play' ? 'finish the evening first — the diary waits.' : 'opening the diary…'; }, 'open the diary');
+R('/memory', () => {
+  const H = save.data.helpers, out = [{ t: '# CLAWD.md (memory)', c: '#f2c14e' }, '- days off are for resting', '- delegate the cranking'];
+  helpers.forEach((h, i) => out.push(`- ${h.name} ${h.icon} remembers ${H[i].tasks} task${H[i].tasks === 1 ? '' : 's'} across ${H[i].days} evening${H[i].days === 1 ? '' : 's'}`));
+  const w = save.data.wishes || []; if (w.length) out.push(`- wished for: "${w[w.length - 1].text}"`);
+  return out;
+}, 'what everyone remembers');
+R('cat wishes.txt', () => { const w = save.data.wishes || []; return w.length ? w.map(x => ({ t: `🎋 ${x.text}`, c: '#9fd3ff' })) : 'cat: wishes.txt: not yet. (thursday)'; }, '', { hidden: true });
+R('make', a => G.chapter && G.mode === 'play' ? `already on it ✦ (${G.chapter.goal || G.chapter.prompt})` : 'make: *** no evening in progress. stop.', '', { hidden: true });
 R('/sound', () => { const m = audio.mute(); save.setting('muted', m); syncMute(); return m ? 'sound off' : 'sound on'; }, 'toggle sound');
 R('ls', () => G.chapter?.ls ? G.chapter.ls() : 'laptop/  lanterns/  furin  plant.tsx', 'list files');
 R('pwd', () => '/home/clawd/balcony', '', { hidden: true });
