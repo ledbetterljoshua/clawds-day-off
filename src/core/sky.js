@@ -389,7 +389,8 @@ const moonDir = new V3(), lightDir = new V3(), keyDir = new V3();
 
 // cel balance: with a two-tone ramp the shadow side gets only the sky fill, so the fill carries
 // more of the light than a smooth-shaded scene would, and its color is what tints the shadows
-const CEL = { key: .5, fill: 1.35, fillSat: 1.5, bounce: .45, minEl: .5 };
+const CEL = { key: .5, fill: 1.35, fillSat: 1.5, bounce: .45, minEl: .5, keyWhite: .35, duskLift: .9 };
+const WHITE = new THREE.Color(1, 1, 1);
 function saturate(c, k) {
   const l = c.r * .2126 + c.g * .7152 + c.b * .0722;
   c.setRGB(Math.max(0, l + (c.r - l) * k), Math.max(0, l + (c.g - l) * k), Math.max(0, l + (c.b - l) * k));
@@ -477,7 +478,10 @@ export const sky = {
 
     // scene lighting
     toScene(Pl.haze, scene.fog.color); scene.fog.near = Pl.fogNear; scene.fog.far = Pl.fogFar;
-    key.color.copy(Pl.key); key.intensity = Pl.keyI * CEL.key;
+    // sunset light stays bright and a little pinker than the sky's key, as in the film; a pure
+    // salmon key on orange props reads as red
+    const dusk = smooth(.5, .8, p) * (1 - night);
+    key.color.copy(Pl.key).lerp(WHITE, CEL.keyWhite * dusk); key.intensity = (Pl.keyI + CEL.duskLift * dusk) * CEL.key;
     if (moonOn && sd.y < 0) { rim.color.copy(u.uMoonCol.value); rim.position.copy(moonDir).multiplyScalar(30); }
     else { rim.color.copy(Pl.sun); rim.position.copy(sd).multiplyScalar(30); }
     rim.intensity = Pl.rimI;

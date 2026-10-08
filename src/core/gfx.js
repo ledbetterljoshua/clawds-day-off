@@ -43,6 +43,12 @@ THREE.ShaderChunk.lights_toon_pars_fragment = THREE.ShaderChunk.lights_toon_pars
   `float celL = dot( material.diffuseColor, vec3( .2126, .7152, .0722 ) );
   reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( max( mix( vec3( celL ), material.diffuseColor, 1.2 ), 0. ) );`);
 
+// faces turned from the key are already in form shadow (the ramp); don't let the shadow map
+// black them out as well, or every backlit front face drops to the fill alone
+THREE.ShaderChunk.lights_fragment_begin = THREE.ShaderChunk.lights_fragment_begin.replace(
+  'directLight.color *= ( directLight.visible && receiveShadow ) ? getShadow( directionalShadowMap[ i ]',
+  'directLight.color *= ( directLight.visible && receiveShadow && dot( geometryNormal, directLight.direction ) > .15 ) ? getShadow( directionalShadowMap[ i ]');
+
 export const toon = (color, o = {}) => new THREE.MeshToonMaterial({ color, gradientMap: gradTex, ...o });
 
 export function mesh(geo, mat, x = 0, y = 0, z = 0, parent = scene, shadow = true) {
