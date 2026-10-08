@@ -18,10 +18,10 @@ world.cityMat = new THREE.MeshLambertMaterial({ color: 0x95a8c6, emissive: 0xffd
   const N = 900, city = new THREE.InstancedMesh(box(1, 1, 1), world.cityMat, N), m4 = new THREE.Matrix4(), q = new THREE.Quaternion();
   for (let i = 0; i < N; i++) {
     const z = rand(-95, -320), x = rand(-1.3, 1.3) * -z, h = rand(4, 13) * (Math.random() < .06 ? 2.2 : 1);
-    m4.compose(new V3(x, -22 + h / 2, z), q, new V3(rand(3, 8), h, rand(3, 8))); city.setMatrixAt(i, m4);
+    m4.compose(new V3(x, -28 + h / 2, z), q, new V3(rand(3, 8), h, rand(3, 8))); city.setMatrixAt(i, m4);
   }
   scene.add(city); world.city = city;
-  const ground = mesh(new THREE.PlaneGeometry(1400, 1400), new THREE.MeshLambertMaterial({ color: 0x7d9478 }), 0, -22, 0, scene, false);
+  const ground = mesh(new THREE.PlaneGeometry(1400, 1400), new THREE.MeshLambertMaterial({ color: 0x7d9478 }), 0, -28, 0, scene, false);
   ground.rotation.x = -Math.PI / 2;
 }
 const treeMats = [toon(0x4f8f45), toon(0x3c7a3c)];

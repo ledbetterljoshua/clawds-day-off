@@ -4,18 +4,13 @@ import { $, esc } from './util.js';
 import { audio } from './audio.js';
 import { save } from './save.js';
 import { post } from './post.js';
-import { renderer } from './gfx.js';
 
 const el = document.createElement('div');
 el.id = 'settings'; el.className = 'hidden'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'settings');
 document.body.appendChild(el);
 
-export function applyGraphics(q) {
-  if ('quality' in post) post.quality = q;
-  post.enabled = q !== 'low' || !('quality' in post);
-  renderer.shadowMap.enabled = q !== 'low';
-  renderer.setPixelRatio(Math.min(devicePixelRatio, q === 'low' ? 1.25 : 2));
-}
+// post owns pixel ratio, sky detail and passes per tier
+export function applyGraphics(q) { post.quality = q; }
 
 export const settings = {
   get reduceMotion() { return !!save.setting('reduceMotion') || matchMedia('(prefers-reduced-motion: reduce)').matches; },
