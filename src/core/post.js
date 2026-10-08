@@ -62,7 +62,7 @@ function makeTarget() {
   return new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType, samples: tier === 'low' ? 0 : pr >= 2 ? 2 : 4 });
 }
 function build() {
-  composer?.dispose?.();
+  composer?.dispose?.(); bloom?.dispose?.(); bokeh?.dispose?.(); final?.material.dispose();
   composer = new EffectComposer(renderer, makeTarget());
   composer.addPass(new RenderPass(scene, camera));
   bokeh = new BokehPass(scene, camera, { focus: 10, aperture: .002, maxblur: .008 });
