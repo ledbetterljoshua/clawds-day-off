@@ -14,11 +14,11 @@ import { InkPass } from './ink.js';
 const FinalShader = {
   uniforms: {
     tDiffuse: { value: null }, uExposure: { value: 1 }, uTime: { value: 0 }, uVig: { value: .2 }, uGrain: { value: .018 },
-    uWarm: { value: .05 }, uCool: { value: .05 }, uSat: { value: 1.04 }, uCA: { value: .003 }, uRes: { value: new THREE.Vector2(1, 1) },
+    uWarm: { value: .05 }, uCool: { value: .05 }, uSat: { value: 1.04 }, uRes: { value: new THREE.Vector2(1, 1) },
   },
   vertexShader: /* glsl */`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
   fragmentShader: /* glsl */`
-    uniform sampler2D tDiffuse; uniform float uExposure, uTime, uVig, uGrain, uWarm, uCool, uSat, uCA; uniform vec2 uRes;
+    uniform sampler2D tDiffuse; uniform float uExposure, uTime, uVig, uGrain, uWarm, uCool, uSat; uniform vec2 uRes;
     varying vec2 vUv;
     vec3 pRRT(vec3 v){ vec3 a = v * (v + .0245786) - .000090537; vec3 b = v * (.983729 * v + .4329510) + .238081; return a / b; }
     vec3 pAces(vec3 c){
@@ -29,10 +29,7 @@ const FinalShader = {
     vec3 pSRGB(vec3 c){ return mix(pow(c, vec3(.41666)) * 1.055 - .055, c * 12.92, vec3(lessThanEqual(c, vec3(.0031308)))); }
     float pHash(vec2 p){ vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
     void main(){
-      // a touch of lateral chromatic aberration toward the frame edges, like a real lens
-      vec2 ca = (vUv - .5) * uCA;
-      vec3 src = vec3(texture2D(tDiffuse, vUv + ca).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - ca).b);
-      vec3 c = pSRGB(pAces(src));
+      vec3 c = pSRGB(pAces(texture2D(tDiffuse, vUv).rgb));
       float l = dot(c, vec3(.299, .587, .114));
       c += vec3(-.03, .0, .07) * uCool * (1. - l) * (1. - l) * 2.;
       c += vec3(.07, .03, -.045) * uWarm * l * l * 2.;
