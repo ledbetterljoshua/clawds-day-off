@@ -50,7 +50,7 @@ export function autoName(d) {
   return `${/^[aeiou]/.test(w) ? 'an' : 'a'} ${w} ${fx}`;
 }
 export const displayName = d => (d.name || '').trim() || autoName(d) || (d.mode === 1 ? 'a secret shape' : 'an empty shell');
-export const cleanName = s => String(s || '').replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 30);
+export const cleanName = s => String(s || '').replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').slice(0, 30).trim();
 
 // the colors a shell shows, for its paper band on the rack and its chip in the show
 export function mainColors(d) {
