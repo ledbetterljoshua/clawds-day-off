@@ -2,20 +2,20 @@
 // the town below the balcony. The crew runs a kakigōri stall: shave → syrup → serve, one cup per
 // customer in line. The helpers can staff it as standing jobs; staff it well and Clawd is free to
 // go scoop goldfish and buy a mask with what the stall earns. Fireworks over the river at 8:30.
-import { THREE, V3, toScreen } from '../../core/gfx.js';
-import { G } from '../../core/state.js';
-import { $, rand, pick, clamp, lerp, smooth, damp, esc } from '../../core/util.js';
-import { tween, sleep, until } from '../../core/tween.js';
-import { clawd, helpers, crew } from '../../core/crab.js';
-import { lock, credit, unassign } from '../../core/agents.js';
-import { mini } from '../../core/minigames.js';
-import { cam } from '../../core/camera.js';
-import { sky } from '../../core/sky.js';
-import { world } from '../../core/world.js';
-import { audio } from '../../core/audio.js';
-import { hud } from '../../core/hud.js';
-import { term } from '../../core/terminal.js';
-import { sparkle, puff, firework } from '../../core/fx.js';
+import { THREE, V3, toScreen } from '../core/gfx.js';
+import { G, emit } from '../core/state.js';
+import { $, rand, pick, clamp, lerp, smooth, damp, esc } from '../core/util.js';
+import { tween, sleep, until } from '../core/tween.js';
+import { clawd, helpers, crew } from '../core/crab.js';
+import { lock, credit, unassign } from '../core/agents.js';
+import { mini } from '../core/minigames.js';
+import { cam } from '../core/camera.js';
+import { sky } from '../core/sky.js';
+import { world } from '../core/world.js';
+import { audio } from '../core/audio.js';
+import { hud } from '../core/hud.js';
+import { term } from '../core/terminal.js';
+import { sparkle, puff, firework } from '../core/fx.js';
 import { X, FRONT, buildStreet, updateLanterns } from './matsuri/street.js';
 import { FLAV, FLAVORS, SX, SPOT, QUEUE, buildStall, syncStall, makeCup, counterY as CY, counterZ as CZ } from './matsuri/stall.js';
 import { Folk } from './matsuri/folk.js';
@@ -386,6 +386,7 @@ function exitTub() {
   if (S.view !== 'tub') return;
   S.view = 'street'; GF.stop(); UI.tub.classList.add('hidden');
   let k = GF.takeBowl();
+  if (k.length) emit('sticker', 'kingyo');
   if (!k.length && !S.fish.length && !S.omake) { S.omake = true; k = ['wakin']; keeperSay('はい、おまけ ✦ (one for trying)'); }
   if (k.length) { S.fish.push(...k); setBag(); clawd.say(k.length > 1 ? `${k.length} goldfish ✦` : S.omake && k.length === 1 && S.fish.length === 1 ? 'a goldfish anyway ✦' : 'a goldfish ✦', 2.2); clawd.mood('happy', 2); }
   clawd.faceOverride = null;
@@ -436,7 +437,7 @@ function streetCam(dt) {
   S.camX = lerp(S.camX, clawd.x + lead * .8 + (Math.abs(clawd.x - X.stall - 2) < 5 ? 1.5 : 0), damp(2.2, dt));
   const x = clamp(S.camX, -30 + hw - .6, 30 - hw + .6);
   _pos.set(x, 1.2 + dist * .1, .6 + dist); _look.set(x, 1.85, -1.4);
-  cam.shot(_pos, _look, { fov: 40, k: 3 });
+  cam.shot(_pos, _look, { fov: 40, k: 3, parallax: true });
 }
 
 // ───────────── UI ─────────────
@@ -491,14 +492,9 @@ function wallet() { const s = $('#clock .s'); if (!s) return; const t = `🎆 fi
 
 // ───────────── the chapter ─────────────
 export default {
-  id: 'matsuri', day: 6, title: 'Natsu-matsuri', jp: '夏祭り', short: '夏祭り', proto: true,
+  id: 'matsuri', day: 6, title: 'Natsu-matsuri', jp: '夏祭り', short: '夏祭り',
   weather: 'はれ', blurb: 'The summer festival. Run the kakigōri stall, then go and enjoy it.',
   jpPreview: 'きょうは なつまつり。',
-  sketch: [
-    'A sketch of an evening off the balcony: the neighborhood summer festival.',
-    'The crew runs a kakigōri stall. Staff it with your helpers and it keeps running while Clawd goes to scoop goldfish and buy a mask with what it earns.',
-    'The question it asks: can delegating well be the reason you get a day off?',
-  ],
   prompt: 'run the kakigōri stall', goal: 'run the stall · enjoy the festival',
   sky: 'clear', mood: 'festival', dayLen: 400, phase: [.78, 1], autoNight: false, bounds: [-30, 30],
   // the HUD reads the clock off the whole 0..1 sky phase; this puts .78 at 6:30 and 1 at 8:30

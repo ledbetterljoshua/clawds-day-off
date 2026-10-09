@@ -1,11 +1,11 @@
 // 金魚すくい: a shallow tub of goldfish and a paper scoop (poi) that tears. Played in the world,
 // looking down into the tub: press to dip the poi, slide it under a fish, let go to lift.
 // The paper softens the longer it's wet, faster when you sweep it, and a heavy fish can break it.
-import { THREE, V3, mesh, group, box, rbox, cyl, sph, toon, canvasTex, toScreen } from '../../../core/gfx.js';
-import { G } from '../../../core/state.js';
-import { $, rand, pick, clamp, lerp, damp, wrapAngle, isTouch } from '../../../core/util.js';
-import { tween } from '../../../core/tween.js';
-import { audio } from '../../../core/audio.js';
+import { THREE, V3, mesh, group, box, rbox, cyl, sph, toon, canvasTex, toScreen } from '../../core/gfx.js';
+import { G } from '../../core/state.js';
+import { $, rand, pick, clamp, lerp, damp, wrapAngle, isTouch } from '../../core/util.js';
+import { tween } from '../../core/tween.js';
+import { audio } from '../../core/audio.js';
 import { X, FRONT } from './street.js';
 
 export const TUB = { x: X.gold, z: FRONT - .9, w: 3.3, d: 1.2, rim: .42, water: .35 };

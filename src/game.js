@@ -19,7 +19,7 @@ import { settings } from './core/settings.js';
 import { award, setStickerToast } from './core/stickers.js';
 import { firework, sparkle, puff, disposeUnder } from './core/fx.js';
 import { initInput, setHits, held, pointer } from './core/input.js';
-import { CHAPTERS } from './chapters/index.js';
+import { CHAPTERS, WEEK } from './chapters/index.js';
 
 const ringMat = new THREE.MeshBasicMaterial({ color: COL.orange, transparent: true, opacity: .7, depthWrite: false, toneMapped: false });
 let root = null, rings = {}, finishResolve = null, introTap = null, hover = null, runId = 0, snapWaiters = [], lastPhoto = null, chapterCmds = [];
@@ -40,6 +40,8 @@ export const game = {
     helpers.forEach(h => h.reset({ visible: false }));
     const d = +G.dev.get('day');
     if (d && CHAPTERS[d - 1]) { game.run(CHAPTERS[d - 1]); return; }
+    // a firework someone sent you opens straight onto it, whatever you've unlocked
+    if (G.dev.get('fw')) { game.run(CHAPTERS.find(c => c.id === 'hanabi')); return; }
     const sk = G.dev.get('proto');
     if (sk && /^[a-z0-9-]+$/.test(sk)) {
       try { game.run((await import(`./chapters/proto/${sk}.js`)).default); return; }
@@ -121,7 +123,7 @@ export const game = {
       if (stamp === 'perfect') award('perfect');
     }
     save.setDay(def.id, { done: true, complete: !!result.complete, stamp, photo, text, stats: statsLine(result), at: Date.now(), ...(G.polaroid ? { polaroid: G.polaroid } : {}) });
-    if (CHAPTERS.every(c => save.day(c.id)?.done)) award('week');
+    if (WEEK.every(c => save.day(c.id)?.done)) award('week');
     await sleep(.6);
     if (my !== runId) return;
     audio.setMood('quiet');
@@ -436,6 +438,12 @@ function applySettings() {
 $('#mute').onclick = e => { e.stopPropagation(); const m = audio.mute(); save.setting('muted', m); syncMute(); };
 $('#gear').onclick = e => { e.stopPropagation(); settings.open(); };
 diary.onSettings = () => settings.open();
+diary.onTitle = () => {
+  if (world.balconyOn || G.mode === 'play' || G.mode === 'intro') return;
+  teardown();
+  clawd.reset({ x: -6.8, z: .55, face: -2.0 }); clawd.faceOverride = -2.0;
+  helpers.forEach(h => h.reset({ visible: false }));
+};
 settings.onEndEvening = () => { if (G.mode === 'play') { mini.close(true); game.finish({ complete: false, quit: true }); } };
 $('#menu').onclick = e => { e.stopPropagation(); if (G.mode === 'play') { mini.close(true); game.finish({ complete: false, quit: true }); } };
 

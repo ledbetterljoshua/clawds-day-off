@@ -10,9 +10,9 @@ delightful thing we can add, and the thing that spreads the game?
 
 ## Play it
 
-- `?proto=hanabi&nosave&mute` (add `&skip` to skip the laptop intro, `&q=low` for the light tier)
-- A gift, a picture: `?proto=hanabi&fw=AQMAAAAAAAAAYAYAAGYAYGYGAGZmAGZmBmZmBmZmZmZmZmZmZmZmZmZgZmZmZmYAYGZmZmYAAGBmZmYAAABgZmYAAAAAYGYAAAAAAGAAAAAAAAAAAAAADmEgcHVycGxlIGhlYXJ0` ("a purple heart" with a gold frame)
-- A gift, a shell: `?proto=hanabi&fw=AQANBzExMTExMTExMTEGBgYGBgYGBlVVVVVVVQAAAAAQc3VtbWVyLCBpbiByaW5ncw` ("summer, in rings")
+- `?day=7&nosave&mute` (add `&skip` to skip the laptop intro, `&q=low` for the light tier)
+- A gift, a picture: `?fw=AQMAAAAAAAAAYAYAAGYAYGYGAGZmAGZmBmZmBmZmZmZmZmZmZmZmZmZgZmZmZmYAYGZmZmYAAGBmZmYAAABgZmYAAAAAYGYAAAAAAGAAAAAAAAAAAAAADmEgcHVycGxlIGhlYXJ0` ("a purple heart" with a gold frame)
+- A gift, a shell: `?fw=AQANBzExMTExMTExMTEGBgYGBgYGBlVVVVVVVQAAAAAQc3VtbWVyLCBpbiByaW5ncw` ("summer, in rings")
 
 ## What's in it
 
@@ -48,7 +48,7 @@ delightful thing we can add, and the thing that spreads the game?
     your last shell's full bloom.
   - The end card offers ✉ send for your shell.
 - **Send / gift**:
-  - The link format is `?proto=hanabi&fw=<base64url>`. Each one is a version byte, a mode,
+  - The link format is `?fw=<base64url>`. Each one is a version byte, a mode,
     4-bit cells and a UTF-8 name: 44–66 chars for a shell, up to about 175 for a named picture.
   - Copying uses `navigator.clipboard` with a select-the-text fallback. Where it exists,
     `navigator.share` is offered too.
@@ -89,7 +89,7 @@ delightful thing we can add, and the thing that spreads the game?
   - a composed finale built from your own shells, or a short score where the presses are
     the notes
   - or let the player arrange the order and then just watch
-- In the real game, `?fw=` becomes a top-level route instead of `?proto=hanabi&fw=`.
+- `?fw=` is a top-level route: it opens day 7 whatever the player has unlocked.
 - The design → test-fire → tweak loop is the part worth keeping; it would also work as a
   terminal command (`hanabi --design`) on other evenings.
 

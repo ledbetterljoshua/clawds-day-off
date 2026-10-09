@@ -2,20 +2,20 @@
 // shell star by star at the bench, test fire it over the city, put it on the rack with the
 // helpers' shells, then run the show one beat at a time. A shell can be sent as a link; opening
 // one plays "a firework from a friend" before the bench.
-import { V3 } from '../../core/gfx.js';
-import { G } from '../../core/state.js';
-import { rand, clamp, lerp, ease, pick, isTouch } from '../../core/util.js';
-import { tween, sleep, until } from '../../core/tween.js';
-import { clawd, helpers, crew } from '../../core/crab.js';
-import { audio } from '../../core/audio.js';
-import { E } from '../../core/audio/engine.js';
-import { MOODS } from '../../core/audio/music.js';
-import { term } from '../../core/terminal.js';
-import { cam } from '../../core/camera.js';
-import { hud } from '../../core/hud.js';
-import { sky } from '../../core/sky.js';
-import { held } from '../../core/input.js';
-import { firework, sparkle, puff } from '../../core/fx.js';
+import { V3 } from '../core/gfx.js';
+import { G, emit } from '../core/state.js';
+import { rand, clamp, lerp, ease, pick, isTouch } from '../core/util.js';
+import { tween, sleep, until } from '../core/tween.js';
+import { clawd, helpers, crew } from '../core/crab.js';
+import { audio } from '../core/audio.js';
+import { E } from '../core/audio/engine.js';
+import { MOODS } from '../core/audio/music.js';
+import { term } from '../core/terminal.js';
+import { cam } from '../core/camera.js';
+import { hud } from '../core/hud.js';
+import { sky } from '../core/sky.js';
+import { held } from '../core/input.js';
+import { firework, sparkle, puff } from '../core/fx.js';
 import * as D from './hanabi/design.js';
 import { build, setSlot, paintFace, resetFace, BENCH_X, RACK_X, SLOT_XZ } from './hanabi/props.js';
 import * as UI from './hanabi/ui.js';
@@ -161,10 +161,10 @@ function closeCards() {
 }
 
 // ── sharing ──
-function shareURL(d) { return `${location.origin}${location.pathname}?proto=hanabi&fw=${D.encode(d)}`; }
+function shareURL(d) { return `${location.origin}${location.pathname}?fw=${D.encode(d)}`; }
 function shareOpen(d) {
   shareCard?.close();
-  shareCard = UI.openShare(d, shareURL(d), { onClose: () => { shareCard?.close(); shareCard = null; }, onShared: () => { S.shared = true; } });
+  shareCard = UI.openShare(d, shareURL(d), { onClose: () => { shareCard?.close(); shareCard = null; }, onShared: () => { S.shared = true; emit('sticker', 'gift'); } });
 }
 
 // ── helpers show off their own shells ──
@@ -265,7 +265,7 @@ async function runShow(game) {
   const last = P.slots[lastMine]?.design;
   if (last && S) {
     await new Promise(r => {
-      shareCard = UI.openShare(last, shareURL(last), { onClose: () => { shareCard?.close(); shareCard = null; r(); }, onShared: () => { S.shared = true; } });
+      shareCard = UI.openShare(last, shareURL(last), { onClose: () => { shareCard?.close(); shareCard = null; r(); }, onShared: () => { S.shared = true; emit('sticker', 'gift'); } });
       const x = shareCard.el.querySelector('.hb-x'); if (x) { x.textContent = 'done ✦'; x.className = 'hb-btn go'; x.style.flex = 'none'; }
     });
   }
@@ -312,13 +312,7 @@ function shapedLike(d) {
 // ───────────── chapter ─────────────
 export default {
   id: 'hanabi', day: 7, title: 'Hanabi-shi', jp: '花火師', short: '花火師', weather: 'はれ',
-  proto: true,
   blurb: 'Make a firework of your own, then send it to a friend.',
-  sketch: [
-    'Sunday, no jobs: design a firework shell star by star, test fire it over the city, then run the show one beat at a time.',
-    'The question: is making something that\'s yours, and sending it to someone, the most delightful thing we can add?',
-    'Try ✉ send on the bench, then open the link in another tab.',
-  ],
   jpPreview: 'きょうは はなびを つくる。',
   prompt: 'design tonight\'s fireworks', goal: 'design tonight\'s fireworks',
   sky: 'clear', mood: 'day', dayLen: Infinity, autoNight: false, phase: [.95, .95],
@@ -343,7 +337,12 @@ export default {
     P = build(root);
     LINEUP.forEach((l, i) => { setSlot(P, i, D.clone(l.d), l.who); P.slots[i].byLabel = l.by; });
     const code = G.dev.get('fw');
-    if (code) { S.gift = D.decode(code); if (!S.gift) S.badGift = true; }
+    if (code) {
+      S.gift = D.decode(code); if (!S.gift) S.badGift = true;
+      // a gift plays once; replaying the evening from the diary is your own
+      G.dev.delete('fw');
+      try { history.replaceState(null, '', location.pathname + (G.dev.toString() ? `?${G.dev}` : '') + location.hash); } catch { /* sandboxed */ }
+    }
   },
 
   stations: () => ({

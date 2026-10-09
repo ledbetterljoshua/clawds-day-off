@@ -1,12 +1,12 @@
 // Our kakigōri yatai's working props: the ice box, a small hand-cranked shaver, the shaved cups
 // waiting for syrup, three syrup bottles, the cups ready to hand over, and the coin tray.
-import { THREE, V3, mesh, group, box, rbox, cyl, sph, toon, MAT } from '../../../core/gfx.js';
-import { iceMat } from '../../../core/crab.js';
+import { THREE, V3, mesh, group, box, rbox, cyl, sph, toon, MAT } from '../../core/gfx.js';
+import { iceMat } from '../../core/crab.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { prep } from './kit.js';
 import { X, FRONT } from './street.js';
-import { Particles } from '../../../core/fx.js';
-import { rand, lerp } from '../../../core/util.js';
+import { Particles } from '../../core/fx.js';
+import { rand, lerp } from '../../core/util.js';
 
 export const FLAV = {
   red: { kana: 'いちご', en: 'strawberry', css: '#e8384c', mound: 0xff6b7a },

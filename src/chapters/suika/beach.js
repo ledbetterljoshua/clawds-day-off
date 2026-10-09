@@ -1,10 +1,10 @@
 // The beach for the suikawari sketch: sand that keeps footprints, a painted sea whose foam comes
 // and goes, a parasol, a towel, a cooler, and the watermelon (it cracks, then falls open).
-import { THREE, V3, mesh, group, box, rbox, cyl, sph, toon, canvasTex, MAT } from '../../../core/gfx.js';
-import { G } from '../../../core/state.js';
-import { rand, clamp, lerp, pick } from '../../../core/util.js';
-import { Particles } from '../../../core/fx.js';
-import { sky } from '../../../core/sky.js';
+import { THREE, V3, mesh, group, box, rbox, cyl, sph, toon, canvasTex, MAT } from '../../core/gfx.js';
+import { G } from '../../core/state.js';
+import { rand, clamp, lerp, pick } from '../../core/util.js';
+import { Particles } from '../../core/fx.js';
+import { sky } from '../../core/sky.js';
 
 export const SHORE = -6;                 // where the sand meets the sea (z)
 export const MELON = new V3(0, 0, -1.2); // watermelon on its blue sheet

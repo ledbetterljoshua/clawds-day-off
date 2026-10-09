@@ -1,9 +1,9 @@
 // Townsfolk in yukata: round heads, ears that say who they are (cat, tanuki, rabbit, dog, a kid
 // with a fox mask pushed to the side, an old man with an uchiwa fan). Each is one merged mesh
 // plus a face card, so a crowd stays cheap.
-import { THREE, V3, toon, box, cyl, sph, canvasTex } from '../../../core/gfx.js';
-import { G } from '../../../core/state.js';
-import { rand, pick, lerp, clamp, damp, wrapAngle } from '../../../core/util.js';
+import { THREE, V3, toon, box, cyl, sph, canvasTex } from '../../core/gfx.js';
+import { G } from '../../core/state.js';
+import { rand, pick, lerp, clamp, damp, wrapAngle } from '../../core/util.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeAtlas, prep } from './kit.js';
 

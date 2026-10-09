@@ -1,6 +1,6 @@
 // Building blocks for a set that has to stay cheap: one painted canvas atlas for every sign,
 // awning and shopfront, and a bucket that merges static parts into one mesh per material.
-import { THREE, V3 } from '../../../core/gfx.js';
+import { THREE, V3 } from '../../core/gfx.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export function makeAtlas(size = 2048) {

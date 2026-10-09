@@ -2,7 +2,7 @@
 // around the burst charge; each ring bursts into a sphere, and its layout is the pattern in the
 // sky. Picture mode (型物 katamono): stars laid out as a picture that bursts flat toward you.
 // Designs are plain objects so they clone, encode into a share link and decode back exactly.
-import { rand, pick } from '../../../core/util.js';
+import { rand, pick } from '../../core/util.js';
 
 // index 0 is an empty slot; colors are named for what burns them
 export const COLORS = [

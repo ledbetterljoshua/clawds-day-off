@@ -1,6 +1,6 @@
 # Sketch · 夏祭り Natsu-matsuri
 
-`?proto=matsuri` (add `&skip` to skip the intro, `&nosave&mute` for test runs).
+`?day=6` (add `&skip` to skip the intro, `&nosave&mute` for test runs).
 
 **The question:** can delegating well be the reason Clawd gets a day off?
 

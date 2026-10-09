@@ -1,7 +1,7 @@
 # Sketch: スイカ割り Suikawari (prompt a blindfolded agent)
 
-`?proto=suika` (add `&skip` to skip the intro, `&nosave&mute` for tests). Files:
-`src/chapters/proto/suika.js` (rounds, prompting, motion), `suika/beach.js` (the set),
+`?day=8` (add `&skip` to skip the intro, `&nosave&mute` for tests). Files:
+`src/chapters/suika.js` (rounds, prompting, motion), `suika/beach.js` (the set),
 `suika/ui.js` (command pad, question, blindfold, title card). No core edits.
 
 ## What it is

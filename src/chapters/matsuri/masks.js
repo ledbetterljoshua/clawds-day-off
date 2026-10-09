@@ -1,7 +1,7 @@
 // お面: a board of festival masks. Buy one and Clawd wears it pushed to the side, the way
 // everyone does, for the rest of the night.
-import { THREE, toon, canvasTex } from '../../../core/gfx.js';
-import { $, esc } from '../../../core/util.js';
+import { THREE, toon, canvasTex } from '../../core/gfx.js';
+import { $, esc } from '../../core/util.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeAtlas, prep } from './kit.js';
 import { X, FRONT } from './street.js';

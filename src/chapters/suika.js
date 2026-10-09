@@ -2,18 +2,18 @@
 // walks, turns and swings only on your instructions, each one a message from a small context
 // budget, and each helper hears them its own way. In the last round Clawd wears the blindfold
 // and the helpers guide you.
-import { THREE, V3 } from '../../core/gfx.js';
-import { G } from '../../core/state.js';
-import { rand, clamp, lerp, ease, pick, wrapAngle, isTouch } from '../../core/util.js';
-import { tween, sleep, until } from '../../core/tween.js';
-import { Crab, clawd, helpers, crew } from '../../core/crab.js';
-import { audio } from '../../core/audio.js';
-import { E } from '../../core/audio/engine.js';
-import { term } from '../../core/terminal.js';
-import { cam } from '../../core/camera.js';
-import { sky } from '../../core/sky.js';
-import { puff, sparkle } from '../../core/fx.js';
-import { hud } from '../../core/hud.js';
+import { THREE, V3 } from '../core/gfx.js';
+import { G, emit } from '../core/state.js';
+import { rand, clamp, lerp, ease, pick, wrapAngle, isTouch } from '../core/util.js';
+import { tween, sleep, until } from '../core/tween.js';
+import { Crab, clawd, helpers, crew } from '../core/crab.js';
+import { audio } from '../core/audio.js';
+import { E } from '../core/audio/engine.js';
+import { term } from '../core/terminal.js';
+import { cam } from '../core/camera.js';
+import { sky } from '../core/sky.js';
+import { puff, sparkle } from '../core/fx.js';
+import { hud } from '../core/hud.js';
 import * as B from './suika/beach.js';
 import { ui } from './suika/ui.js';
 
@@ -484,6 +484,7 @@ function blindResult(hit, d, sx, sz) {
   const tok = S.tok;
   if (hit) {
     S.control = false; S.results[3] = { hit: true, swings: SWINGS - S.swings };
+    emit('sticker', 'suika');
     reveal(); B.split(); audio.sfx('sk-pakka', { x: sx }); S.melonWob = 0;
     cheer('パカッ!!');
     tween(3.2, () => {}, () => alive(tok) && game_.finish(finalResult()));
@@ -782,14 +783,8 @@ const typedCmd = (args, raw) => typed(raw);
 const COMMAND_WORDS = ['forward', 'fwd', 'f', 'go', 'walk', 'step', 'move', 'straight', 'ahead', 'back', 'left', 'right', 'turn', 'stop', 'wait', 'swing', 'hit', 'now', 'a', 'little', 'slightly', 'please', 'ok', 'okay', 'just', 'see', 'face', 'as', 'no', 'keep', 'more'];
 
 export default {
-  id: 'suika', day: 8, title: 'Suikawari', jp: 'スイカ割り', short: 'スイカ割り', proto: true,
+  id: 'suika', day: 8, title: 'Suikawari', jp: 'スイカ割り', short: 'スイカ',
   weather: 'はれ', blurb: 'A day at the sea. You give the directions; then it\'s your turn under the blindfold.',
-  sketch: [
-    'a sketch of a new kind of evening: the verb is prompting.',
-    'a blindfolded helper moves only on your instructions, and each one costs a message from a small context budget.',
-    'helper 1 asks when it isn\'t sure. helper 2 drifts toward the sound of the sea. helper 3 takes double steps and swings early.',
-    'then you wear the blindfold, and the helpers guide you.',
-  ],
   prompt: 'suikawari at the sea', goal: 'crack the watermelon (スイカ割り)',
   sky: 'clear', mood: 'golden', dayLen: Infinity, phase: [.34, .62], autoNight: false,
   clock: [14 * 60 + 30, 19 * 60 + 30], clockNote: '🍉 suikawari at the sea',

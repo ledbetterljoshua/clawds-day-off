@@ -1,7 +1,7 @@
 // The firework maker's panels: the bench (designer), the rack card, the show console, and the
 // share / gift cards. Plain DOM over the canvas, styled like the HUD panels.
-import { $, esc, isTouch } from '../../../core/util.js';
-import { tone, noise } from '../../../core/audio.js';
+import { $, esc, isTouch } from '../../core/util.js';
+import { tone, noise } from '../../core/audio.js';
 import { COLORS, EFFECTS, G as GRID, clone, displayName, cleanName, mainColors, starCount } from './design.js';
 import { drawShell, hitSlot } from './draw.js';
 

@@ -25,6 +25,7 @@ function stampSVG(tier, big = false) {
   return `<div class="stamp ${big ? 'big' : ''}" title="${s.en}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="1.5"/>${[0, 72, 144, 216, 288].map(a => `<ellipse cx="50" cy="16" rx="5" ry="8" fill="currentColor" transform="rotate(${a} 50 50)" opacity=".9"/>`).join('')}</svg><span>${s.jp}</span></div>`;
 }
 
+const NUM = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
 const CREW = [['helper 1', '🍓', 'strawberry'], ['helper 2', '🌿', 'mint'], ['helper 3', '🧊', 'ice']];
 function crewHTML() {
   const H = save.data.helpers || [];
@@ -58,16 +59,19 @@ export const diary = {
   nextDay() { return chapters.find(c => !save.day(c.id)?.done && diary.unlocked(c)) || chapters[0]; },
 
   showTitle() {
+    diary.onTitle && diary.onTitle();
     G.mode = 'title';
     cam.play(); cam.drift = 1;
     if (!G.chapter) { clawd.workAnim = 'write'; clawd.faceOverride = -2.0; G.phase = .52; sky.setPreset('clear'); }
-    const next = diary.nextDay(), started = Object.keys(save.data.days).length > 0;
+    const next = diary.nextDay(), started = Object.keys(save.data.days).length > 0, all = chapters.every(c => save.day(c.id)?.done);
+    const day = c => { const e = save.day(c.id); return `<div class="cv-day ${e?.done ? 'done' : ''}" title="${esc(c.title)}"><b>${esc(c.short || c.jp)}</b><span>${esc(c.title)}</span>${e?.done ? stampSVG(e.stamp) : ''}</div>`; };
     ov.className = 'title-view';
     ov.innerHTML = `
       <div class="cover">
         <div class="cv-kicker">なつやすみ えにっき <span>summer picture diary</span></div>
-        <div class="cv-band">${PIX}<h1>Clawd's Day Off</h1><div class="cv-sub">${chapters.every(c => save.day(c.id)?.done) ? 'summer, written down ✦' : 'five summer evenings on a balcony'}</div></div>
-        <div class="cv-week">${chapters.map(c => { const e = save.day(c.id); return `<div class="cv-day ${e?.done ? 'done' : ''}" title="${esc(c.title)}"><b>${esc(c.short || c.jp)}</b><span>${esc(c.title)}</span>${e?.done ? stampSVG(e.stamp) : ''}</div>`; }).join('')}</div>
+        <div class="cv-band">${PIX}<h1>Clawd's Day Off</h1><div class="cv-sub">${all ? 'summer, written down ✦' : 'a summer week on a balcony, and the days after'}</div></div>
+        <div class="cv-week">${chapters.filter(c => c.day <= 5).map(day).join('')}</div>
+        <div class="cv-week cv-after"><span class="cv-lbl">なつは つづく</span>${chapters.filter(c => c.day > 5).map(day).join('')}</div>
         <div class="cv-name"><span>なまえ</span> クロード · Clawd</div>
         <div class="cv-actions">
           <button class="go" id="go">${started ? `continue · ${esc(next.title)}` : 'start the week'}</button>
@@ -93,10 +97,11 @@ export const diary = {
   renderWeek() {
     const L = $('#pgL', ov); if (!L) return;
     const all = chapters.every(c => save.day(c.id)?.done);
-    L.innerHTML = `<div class="pg-head"><span class="pg-kicker">なつやすみ えにっき</span><h2>${all ? 'Clawd\'s summer ✦' : 'Clawd\'s week'}</h2>${all ? `<p class="pg-done">five evenings, all written down. thank you for spending them here.</p><div class="strip">${chapters.map(c => { const p = save.day(c.id)?.photo; return p ? `<img src="${p}" alt="${esc(c.title)}">` : '<span></span>'; }).join('')}</div>` : ''}</div>
+    L.innerHTML = `<div class="pg-head"><span class="pg-kicker">なつやすみ えにっき</span><h2>${all ? 'Clawd\'s summer ✦' : 'Clawd\'s summer'}</h2>${all ? `<p class="pg-done">${NUM[chapters.length] || chapters.length} evenings, all written down. thank you for spending them here.</p><div class="strip">${chapters.map(c => { const p = save.day(c.id)?.photo; return p ? `<img src="${p}" alt="${esc(c.title)}">` : '<span></span>'; }).join('')}</div>` : ''}</div>
       <ol class="week">${chapters.map((c, i) => {
         const e = save.day(c.id), dt = dateOf(c), open = diary.unlocked(c);
-        return `<li><button class="wk ${selected === c ? 'sel' : ''} ${open ? '' : 'locked'}" data-i="${i}" ${open ? '' : 'disabled'}>
+        const group = c.day > 5 && !(chapters[i - 1]?.day > 5) ? '<li class="wk-group"><b>なつは つづく</b> the days after</li>' : '';
+        return `${group}<li><button class="wk ${selected === c ? 'sel' : ''} ${open ? '' : 'locked'}" data-i="${i}" ${open ? '' : 'disabled'}>
           <span class="wk-date">${dt.m}/${dt.d}<i>${dt.wd}</i></span>
           <span class="wk-title"><b>${esc(c.jp)}</b> ${esc(c.title)}</span>
           <span class="wk-state">${e?.done ? (e.photo ? `<img class="wk-thumb" src="${e.photo}" alt="">` : '') + stampSVG(e.stamp) : open ? `<span class="wk-next">${c === diary.nextDay() ? 'tonight' : 'open'}</span>` : '🔒'}</span></button></li>`;

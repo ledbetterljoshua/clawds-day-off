@@ -1,6 +1,6 @@
 // The firework workshop on the counter: a workbench with an open half-shell (its cut face shows
 // the design being packed), bowls of star pellets, paste and paper; and a rack of finished shells.
-import { THREE, mesh, group, box, rbox, cyl, sph, toon, canvasTex, MAT } from '../../../core/gfx.js';
+import { THREE, mesh, group, box, rbox, cyl, sph, toon, canvasTex, MAT } from '../../core/gfx.js';
 import { COLORS, mainColors } from './design.js';
 import { drawShell } from './draw.js';
 

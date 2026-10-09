@@ -1,7 +1,7 @@
 // DOM for the suikawari sketch: the command pad with its context meter, helper 1's question,
 // the blindfold (dark cloth, a little light through the weave, voices at its edges) and the
 // title card. Its CSS is injected here and removed on unmount.
-import { esc } from '../../../core/util.js';
+import { esc } from '../../core/util.js';
 
 const CSS = `
 body.sk-suika #hint{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 168px)}

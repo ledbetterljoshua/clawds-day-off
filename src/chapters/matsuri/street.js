@@ -1,9 +1,9 @@
 // The festival street: a row of machiya shopfronts, yatai stalls under strings of chōchin, a
 // torii and shrine steps at the left end, the river embankment at the right end, hills behind.
 // Everything static merges into a handful of meshes; the lanterns are instanced.
-import { THREE, V3, toon, box, cyl, sph, canvasTex } from '../../../core/gfx.js';
-import { G } from '../../../core/state.js';
-import { rand, smooth, lerp } from '../../../core/util.js';
+import { THREE, V3, toon, box, cyl, sph, canvasTex } from '../../core/gfx.js';
+import { G } from '../../core/state.js';
+import { rand, smooth, lerp } from '../../core/util.js';
 import { makeAtlas, Bucket, prep } from './kit.js';
 
 export const X = { stall: 0, gold: -11, mask: 11, ice: -20.5, torii: -26.5, bank: 26, shopsEnd: 22.6 };
