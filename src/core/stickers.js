@@ -23,8 +23,11 @@ export const STICKERS = [
   { id: 'pink', g: '🩷', name: 'the pink noodle', hint: 'catch the one pink noodle' },
   { id: 'wish', g: '🎋', name: 'a wish', hint: 'hang a wish on the bamboo' },
   { id: 'chirigiku', g: '🎇', name: '散り菊', hint: 'keep a sparkler alive to the very end' },
+  { id: 'kingyo', g: '🐟', name: '金魚すくい', hint: 'scoop a goldfish at the festival' },
+  { id: 'gift', g: '💌', name: 'a firework for a friend', hint: 'send someone a firework you made' },
+  { id: 'suika', g: '🍉', name: 'パカッ', hint: 'crack the watermelon wearing the blindfold yourself' },
   { id: 'hop', g: '🐇', name: 'ぴょんぴょん', hint: 'jump twenty times in one evening (space, or tap clawd)' },
-  { id: 'week', g: '🏅', name: 'summer, written down', hint: 'finish all five evenings' },
+  { id: 'week', g: '🏅', name: 'summer, written down', hint: 'finish the week, all five evenings' },
 ];
 
 let toast = null;

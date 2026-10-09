@@ -563,12 +563,14 @@ function build(tier) {
   lines.frustumCulled = false; lines.userData.noInk = true;
   scene.add(lines);
   backdrop.meshes = { town, ring, ground, lines };
+  backdrop.setVisible(backdrop.visible);
   backdrop.count = n;
 }
 
 const _c = new THREE.Color();
 export const backdrop = {
-  U, meshes: null, count: 0,
+  U, meshes: null, count: 0, visible: true,
+  setVisible(on) { backdrop.visible = on; if (backdrop.meshes) for (const m of Object.values(backdrop.meshes)) m.visible = on; },
   // Pl = sky.js's sampled palette for this moment; o = overcast level
   update(Pl, p, { moonOn = 0, overcast: o = 0, tier = 'high', outInv, inInv, expK, wind = .5, sun } = {}) {
     if (!backdrop.meshes) build(tier);

@@ -1,6 +1,7 @@
 # Clawd's Day Off: design + engine contract
 
-Status: all five evenings are built and merged. Chapter notes from their builders live in `notes/`.
+Status: the week (five evenings) and the three days after are built and merged. Chapter notes from their
+builders live in `notes/` (the days after started as sketches: `notes/sketch-*.md`).
 
 Read this whole file before writing code. It is the source of truth for the vision, the
 week, the characters, and the chapter contract every evening is built on.
@@ -41,6 +42,13 @@ yesterday… · 12 tasks remembered").
 | 3 Wed | 流しそうめん Nagashi-sōmen | `chapters/somen.js` | `hot` | Build a bamboo noodle slide, then catch dinner as it flows past. Fireflies at dusk. |
 | 4 Thu | 七夕 Tanabata | `chapters/tanabata.js` | `starry` | Fold paper decorations, write wishes on tanzaku strips, hang them on bamboo. The Milky Way; Orihime and Hikoboshi meet. |
 | 5 Fri | 線香花火 Senkō hanabi | `chapters/senko.js` | `moon` | The finale. No jobs. Four sparklers, one candle. Keep your claw still. Credits. |
+| 6 Sat | 夏祭り Natsu-matsuri | `chapters/matsuri.js` | `clear` | Off the balcony: the neighborhood festival. The stall runs while Clawd plays. |
+| 7 Sun | 花火師 Hanabi-shi | `chapters/hanabi.js` | `clear` | Design firework shells, test-fire them, run the show, send one as a link. |
+| 8 Mon | スイカ割り Suikawari | `chapters/suika.js` | `clear` | A day at the sea. Prompt a blindfolded helper; then wear the blindfold. |
+
+The week ends in Friday's credits; the days after unlock in order once it's done (なつは つづく,
+summer goes on). The `WEEK` export in `chapters/index.js` is the first five, and the "summer, written
+down" sticker counts only those.
 
 ### Chapter briefs
 
@@ -98,6 +106,26 @@ The helpers' sparklers burn on their own; one drops early ("ah"). After the last
 falls: silence, the moon, the helpers asleep leaning on Clawd, the laptop screen showing
 `$ exit` and going dark. Then a credits roll: the original film by Ishu Agrawal
 (@ishuagra02), animated by Opus 5.5; game by Joshua Ledbetter, built with Claude.
+
+**Day 6, Natsu-matsuri: "the stall runs while you play."** The question it answers: can
+delegating well be the reason you get a day off? A festival street (`bounds [-30, 30]`, balcony
+hidden) with a kakigōri stall staffed through *standing jobs* (shave, syrup, serve) that never
+finish; townsfolk queue with order chips and patience bars. Clawd walks off to goldfish scooping
+(in-world, a paper poi that tears) and the mask stall, paid for with what the stall earns. Three
+interruptions need you: the ice runs out, helper 2 asks for a goldfish break, a rush after the
+bon-odori. Fireworks over the river at 8:30.
+
+**Day 7, Hanabi-shi: "make a firework, then give it away."** A workbench on the counter packs a
+花火玉 shell: stars on four rings with an effect per ring, or a 13×13 picture that bursts flat (fx.js
+`type: 'stars' | 'pattern'`). Colors are named for what burns them. Test fire, then the show with
+the helpers' shells. ✉ send builds `?fw=<code>` (`design.js` encode/decode, a few dozen to ~160
+characters); opening one plays the friend's firework first, whatever the player has unlocked.
+
+**Day 8, Suikawari: "prompt a blindfolded agent."** A beach set. Each helper in turn is blindfolded,
+spun, and guided by a button pad or a typed prompt ("turn around then forward 3 then swing" is one
+message from a budget of 12); each hears instructions its own way (h1 asks which left you mean,
+h2 drifts toward the sea, h3 swings early). Then Clawd wears the blindfold and the helpers' voices
+guide you. Crabs walk in 2D here: the chapter wraps each crab's `update` while it runs.
 
 ## Characters
 
@@ -242,6 +270,17 @@ when the player serves (usually from `interact` on the serve station). Night cal
 shows the diary page. Always handle `result.quit` (the player ended the evening early) with
 a short ending.
 
+### Sketch evenings (`?proto=<id>`)
+
+A sketch is a chapter at `src/chapters/proto/<id>.js` with `proto: true`, loaded only by
+`?proto=<id>`. It isn't part of the week: its ending shows a diary page (`diary.showSketch`)
+and nothing is saved. Extra fields: `sketch: ['lines for the left page']` and
+`bounds: [x0, x1]`, how far anyone can walk (default the counter, `[-9.8, 9.8]`). On a set
+wider than 20 the play camera follows Clawd and the key light's shadow map follows the camera.
+An evening somewhere other than the balcony calls
+`game.setScene({ balcony: false, backdrop: false, canopy: false })` in `setup` and uses
+`introRun`, since there's no laptop; teardown puts the balcony back.
+
 ### Jobs (helper AI)
 
 A helper assigned to a job calls `plan(h, sp)` every frame until `done()`. `sp` is its speed
@@ -298,7 +337,8 @@ city), `c.workAnim = 'crank'|...`, `c.lookAt(V3|null)`, `c.blush = 1`, `c.squash
 - **Comments describe the code**, not its history. Default to none; one or two lines for a non-obvious constraint.
 - **Verify by playing.** Run your own server port and your own `agent-browser --session <name>`.
   Dev params: `?day=N` jumps straight into a chapter, `&skip` skips the intro, `&speed=4` fast-forwards,
-  `&phase=0.7` pins the sky clock, `&all` unlocks every day, `&nosave` keeps progress out of storage.
+  `&phase=0.7` pins the sky clock, `&all` unlocks every day, `&nosave` keeps progress out of storage,
+  `?fw=<code>` opens a firework link (day 7, whatever is unlocked).
   `window.__game`, `window.__G` are exposed; `await import('/src/core/crab.js')` gives you the crew.
   Check `agent-browser errors` / `console` after every change; zero errors is the bar.
 - **Performance:** keep draw calls modest (merge or instance repeated props), reuse geometries and

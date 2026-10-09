@@ -86,7 +86,7 @@ export function helperTick(h, dt) {
   let s = null;
   try { s = J.plan(h, speedOf(h, h.job)); } catch (e) { console.error(e); }
   if (!s) { h.waitMsg = '⋯'; return; }
-  if (s.x != null) h.targetX = clamp(s.x, -9.8, 9.8);
+  if (s.x != null) h.targetX = clamp(s.x, G.bounds[0], G.bounds[1]);
   if (s.wait) {
     h.waitMsg = s.wait;
     if (!s.quiet && h.arrived() && h.lastWait !== s.wait && h.bubT <= 0) { h.lastWait = s.wait; h.say(s.wait, 2); }
@@ -106,7 +106,7 @@ function idleWander(h, dt) {
   h.wanderT = (h.wanderT ?? rand(2, 5)) - dt;
   if (h.wanderT < 0 && h.arrived()) {
     h.wanderT = rand(4, 9);
-    h.targetX = clamp(h.x + rand(-1, 1), -9, 9);
+    h.targetX = clamp(h.x + rand(-1, 1), G.bounds[0] + .8, G.bounds[1] - .8);
     if (Math.random() < .25 && h.voice?.length) h.say(h.voice[Math.floor(Math.random() * h.voice.length)], 2.2);
     else if (Math.random() < .3) h.hop(.4);
   }

@@ -399,6 +399,8 @@ function saturate(c, k) {
 
 export const sky = {
   lanternScale: 1,        // chapters can dim the lantern string (sparklers want the dark)
+  canopyOn: true,         // the komorebi leaf shadows over the counter's right end
+  focus: new V3(),        // the key light's shadow map is centered here (follows the camera on long sets)
   rendersStarPair: true,  // the dome draws Vega and Altair from starPair
   lights: { key, hemi, rim, lantern, lanterns },
   clouds: [], cloudMat, skyMat, dome,
@@ -463,8 +465,8 @@ export const sky = {
     lightDir.copy(moonOn && sd.y < 0 ? moonDir : sd);
     // the key light comes from where the sun (or moon) is, lifted so the counter never drops into shade
     keyDir.copy(lightDir); keyDir.y = Math.max(keyDir.y, CEL.minEl); keyDir.normalize();
-    key.position.copy(keyDir).multiplyScalar(22);
-    canopy.visible = key.intensity > .3 && night < .9;
+    key.target.position.copy(sky.focus); key.position.copy(keyDir).multiplyScalar(22).add(sky.focus);
+    canopy.visible = sky.canopyOn && key.intensity > .3 && night < .9;
     canopy.position.copy(CANOPY_AT).addScaledVector(keyDir, 6.5);
     canopy.quaternion.setFromUnitVectors(_Z, keyDir);
     canopy.rotateZ(Math.sin(G.time * .8) * .025 * (world.wind || .5));

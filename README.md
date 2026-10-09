@@ -6,10 +6,11 @@ A playable fan game of **[“Claude's day off 🏝️”](https://x.com/ishuagra
 the short film by **Ishu Agrawal ([@ishuagra02](https://x.com/ishuagra02))**, animated by Opus 5.5
 (end card: *Clawd's Kakigōri — a summer evening, made in code*). All the charm is theirs; this is fan work.
 
-Clawd finishes work, types a prompt, spawns three helpers, and spends five summer evenings on a
-balcony: kakigōri, takoyaki, nagashi-sōmen, tanabata, and a last senkō hanabi. Every evening you can
-do each job yourself (a small hands-on minigame) or delegate it: click a helper, then a station, and
-it works that job until it's done. The week is kept as a なつやすみ えにっき, a summer picture diary.
+Clawd finishes work, types a prompt, spawns three helpers, and spends a summer week on a balcony:
+kakigōri, takoyaki, nagashi-sōmen, tanabata, and a last senkō hanabi. Then summer goes on: the
+neighborhood festival, a night making fireworks, and a day at the sea. On most evenings you can do
+each job yourself (a small hands-on minigame) or delegate it: click a helper, then a station, and it
+works that job until it's done. The summer is kept as a なつやすみ えにっき, a summer picture diary.
 
 **▶ Play it: <https://ledbetterljoshua.github.io/clawds-day-off/>** (best with sound; works on phones)
 
@@ -30,7 +31,17 @@ it works that job until it's done. The week is kept as a なつやすみ えに�
 </tr>
 </table>
 
-Also: your own polaroids (P), 20 stickers (シール), an interactive terminal on the laptop, helpers who
+## The days after
+
+<table>
+<tr>
+<td width="33%" valign="top"><img src="screenshots/sat-matsuri.jpg" alt="Dusk at the festival: a kakigōri stall under rows of 祭 lanterns, Clawd in a fox mask at the window and a line of townsfolk in yukata with order bubbles"><br><b>Sat · 夏祭り natsu-matsuri</b><br>The neighborhood festival. Staff the kakigōri stall with your helpers, then go scoop goldfish and buy a mask with what it earns. Fireworks over the river at 8:30.</td>
+<td width="33%" valign="top"><img src="screenshots/sun-hanabi.jpg" alt="A firework shaped like a strawberry bursting over the city at night, the shell bench and the launch rack in the corners"><br><b>Sun · 花火師 hanabi-shi</b><br>Pack a firework shell star by star, or draw one, then test-fire it over the city and run the show. Send it to a friend as a link.</td>
+<td width="33%" valign="top"><img src="screenshots/mon-suika.jpg" alt="The beach: a blindfolded helper with a stick asks “left as you see it, or as I face?” while the others watch and a watermelon waits on a towel"><br><b>Mon · スイカ割り suikawari</b><br>A day at the sea. Guide a blindfolded helper to the watermelon (each one hears you differently), then wear the blindfold yourself.</td>
+</tr>
+</table>
+
+Also: your own polaroids (P), 23 stickers (シール), an interactive terminal on the laptop, helpers who
 remember the week, generative music and cicadas, and painted skies with rain, rainbows, fireflies and
 the Milky Way.
 
@@ -39,6 +50,9 @@ the Milky Way.
 Click a station to go work it · click a helper (or its card, or 1–3), then a station, to delegate ·
 A/D walk · Space jump (hold for higher; it also drives the minigames) · E interact · `/` opens the
 terminal (try `/help`, `h3 shave ice`, `/effort max`, `sl`, `hanabi`, `crabsay`) · M mute · Esc cancel.
+
+On the firework night, ✉ send makes a link (`?fw=…`) that opens straight onto your firework, on
+anyone's balcony.
 
 On a phone or iPad: tap a station · tap a helper's card, then a station · tap Clawd to jump · tap the
 laptop for the terminal. On iPad, Share → Add to Home Screen plays it fullscreen; landscape shows the
@@ -54,7 +68,7 @@ open http://localhost:4388/
 No build step: ES modules + three.js r160 from jsDelivr. Everything else is made in code: the
 models, the painted backdrop, the line art, the music and every sound.
 
-**Dev params:** `?day=N` jump to a day · `&skip` skip the intro · `&speed=4` · `&phase=0.7` pin the
+**Dev params:** `?day=N` jump to an evening (1–8) · `&skip` skip the intro · `&speed=4` · `&phase=0.7` pin the
 sky clock · `&all` unlock every day · `&nosave` don't write progress · `&mute` start silent ·
 `&noink` turn off the line art.
 

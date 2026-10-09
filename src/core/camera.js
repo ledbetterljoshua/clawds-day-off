@@ -12,10 +12,10 @@ export const cam = {
   tpos: new V3(), tlook: new V3(), fov: 40, tfov: 40, k: 3,
   drift: 0, shake: 0, followX: null,
 
-  play(k = 3) { cam.mode = 'play'; cam.k = k; cam.tfov = 40; cam.drift = 0; cam._dolly = null; },
-  // aim at a shot; cut = jump there instantly
-  shot(pos, look, { fov = 40, k = 1.4, cut = false, drift = 0 } = {}) {
-    cam.mode = 'shot'; cam._dolly = null; cam.tpos.copy(pos); cam.tlook.copy(look); cam.tfov = fov; cam.k = k; cam.drift = reducedMotion() ? 0 : drift;
+  play(k = 3) { cam.mode = 'play'; cam.k = k; cam.tfov = 40; cam.drift = 0; cam._dolly = null; cam.parallax = false; },
+  // aim at a shot; cut = jump there instantly; parallax = lean toward the mouse like the play framing
+  shot(pos, look, { fov = 40, k = 1.4, cut = false, drift = 0, parallax = false } = {}) {
+    cam.mode = 'shot'; cam._dolly = null; cam.parallax = parallax; cam.tpos.copy(pos); cam.tlook.copy(look); cam.tfov = fov; cam.k = k; cam.drift = reducedMotion() ? 0 : drift;
     if (cut) { cam.pos.copy(pos); cam.look.copy(look); cam.fov = fov; }
   },
   // play a list of { pos:[x,y,z], look:[x,y,z], fov, dur, cut, k, drift, to:{pos,look} } shots
@@ -25,8 +25,8 @@ export const cam = {
   frame(out = cam) {
     const asp = innerWidth / innerHeight, t = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
     const d = clamp(9.9 / (t * asp), 12, 19), halfW = d * t * asp;
-    const fx = cam.followX ?? clawd.x;
-    const x = halfW < 9.9 ? clamp(fx, -9.9 + halfW, 9.9 - halfW) : 0;
+    const fx = cam.followX ?? clawd.x, [b0, b1] = G.bounds;
+    const x = halfW < (b1 - b0) / 2 + .1 ? clamp(fx, b0 - .1 + halfW, b1 + .1 - halfW) : (b0 + b1) / 2;
     out.tpos.set(x, 1.2 + d * .175, d); out.tlook.set(x, 1.2, -.3);
     return out;
   },
@@ -41,7 +41,7 @@ export const cam = {
     cam.pos.lerp(cam.tpos, k); cam.look.lerp(cam.tlook, k);
     cam.fov = lerp(cam.fov, cam.tfov, k);
     camera.position.copy(cam.pos);
-    const on = cam.mode === 'play' && !reducedMotion(), kp = damp(PAR.k, dt);
+    const on = (cam.mode === 'play' || cam.parallax) && !reducedMotion(), kp = damp(PAR.k, dt);
     par.x = lerp(par.x, on ? par.tx : 0, kp); par.y = lerp(par.y, on ? par.ty : 0, kp);
     camera.position.x += par.x * PAR.x; camera.position.y -= par.y * PAR.y;
     if (cam.drift) { camera.position.x += Math.sin(G.time * .5) * .04 * cam.drift; camera.position.y += Math.sin(G.time * .37) * .03 * cam.drift; }

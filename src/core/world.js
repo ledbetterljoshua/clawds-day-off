@@ -8,6 +8,7 @@ import { audio } from './audio.js';
 import { backdrop } from './backdrop.js';
 
 export const world = { lanterns: [], lanternMats: [], wind: 0 };
+const before = new Set(scene.children);
 
 // ── the view: the town, the city in the haze, the trees (painted; see backdrop.js) ──
 world.backdrop = backdrop;
@@ -187,6 +188,11 @@ export const CLAWD_PIXELS = [
   '..#.#.#.#..',
   '..#.#.#.#..',
 ];
+
+// everything built above is the balcony; an evening set somewhere else hides it (game.setScene)
+world.balcony = scene.children.filter(o => !before.has(o));
+world.balconyOn = true;
+world.setBalcony = on => { world.balconyOn = on; world.balcony.forEach(o => o.visible = on); };
 
 world.update = function (dt) {
   // breeze: slow gusts that move lanterns, the furin and anything else that listens

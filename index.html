@@ -170,7 +170,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .wk-thumb{position:absolute;inset:3px 6px;width:46px;height:36px;object-fit:cover;border-radius:3px;opacity:.9}
 .wk-state .stamp{position:absolute;z-index:1;right:-12px;top:-10px;width:34px;height:34px}
 .wk-state .stamp span{display:none}
-.strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:10px}
+.strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:10px}
 .strip img,.strip span{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:3px;background:#e6ebf2;display:block}
 .pg-done{font-family:var(--hand);font-size:14px;color:var(--pencil);margin-top:4px}
 .stickers{border-top:1.5px dashed var(--rule);padding-top:12px;display:flex;flex-direction:column;gap:8px}
@@ -186,6 +186,8 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .cn-name{font-family:var(--hand);font-weight:600;font-size:15px}
 .cn-name i{font-style:normal;font-weight:400;font-size:12px;color:var(--pencil);margin-left:4px}
 .cn-n{font-size:11px;color:var(--pencil);font-variant-numeric:tabular-nums}
+.wk-group{font-size:11px;color:var(--pencil);padding:8px 2px 0;border-top:1.5px dashed var(--rule);margin-top:4px}
+.wk-group b{font-family:var(--hand);font-weight:600;font-size:14px;color:var(--paper-ink);margin-right:6px}
 .wk-next{font-size:10px;color:var(--acc-deep);border:1px dashed var(--acc);border-radius:999px;padding:2px 7px}
 .pg-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .pg-foot .credit{padding:0}
@@ -195,7 +197,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 .dp-pic img{width:100%;height:100%;object-fit:cover;display:block;border-radius:2px}
 .dp-empty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:6px;padding:20px;color:var(--pencil);background:repeating-linear-gradient(-45deg,#eef2f7 0 10px,#e6ebf2 10px 20px)}
 .dp-empty b{font-family:var(--hand);font-size:34px;color:var(--paper-ink)}
-.dp-empty span{font-family:var(--hand);font-size:14px;max-width:32ch}
+.dp-empty>span{font-family:var(--hand);font-size:14px;max-width:32ch}
 .polaroid{position:absolute;left:-14px;top:-16px;width:34%;background:#fff;padding:5px 5px 18px;box-shadow:0 4px 12px rgba(0,0,0,.25);transform:rotate(-5deg);z-index:2}
 .polaroid::before{content:'';position:absolute;left:30%;top:-9px;width:40%;height:16px;background:rgba(250,235,180,.75);transform:rotate(3deg)}
 .polaroid img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}
@@ -261,6 +263,8 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
   .credit{padding-left:16px;padding-right:16px}
 }
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+.cv-week.cv-after{grid-template-columns:repeat(3,minmax(0,1fr));width:min(64%,360px);margin:0 auto;padding-top:0}
+.cv-lbl{grid-column:1/-1;text-align:center;font-family:var(--hand);font-size:12px;color:var(--pencil);margin-bottom:-1px}
 </style>
 <script type="importmap">
 {"imports":{
