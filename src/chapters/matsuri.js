@@ -63,6 +63,8 @@ function newCustomer() {
   const c = { f: best, flavor: pick(FLAVORS), patience: 50, patience0: 50, filled: false, claimed: false, arrived: false, free: false };
   best.role = 'queue'; best.cust = c;
   S.queue.push(c);
+  const o = S.ready.find(r => !r.c && r.flavor === c.flavor);
+  if (o) { o.c = c; c.filled = true; }
 }
 
 function leaveLine(c, { sad = false, say = null } = {}) {
@@ -218,14 +220,38 @@ function floatText(t, x, y, z) {
 
 // ───────────── helper jobs (standing: a helper keeps a role until reassigned) ─────────────
 const roleRelease = key => h => { S && (S.lastRole[h.i] = key); };
+
+// A role nobody is on doesn't freeze the line: whoever is at the stall covers it, more slowly
+// (a fully staffed stall is still far faster). Nested covers (window → syrups → shaver → ice run)
+// slow down once, not at every step.
+const ROLE_LOCK = { shave: 'shaver', syrup: 'syrup', serve: 'serve' };
+const onRole = job => helpers.some(x => x.job === job) || G.locks[ROLE_LOCK[job]] === clawd;
+let coverDepth = 0;
+function cover(h, job, sp, line) {
+  const k = coverDepth ? 1 : .6;
+  coverDepth++;
+  try {
+    const s = jobs[job].plan(h, sp * k);
+    if (s?.start && (h.coverJob !== job || G.t - h.coverT > 25)) { h.coverJob = job; h.coverT = G.t; h.say(line, 2); }
+    return s;
+  } finally { coverDepth--; }
+}
+// one ice run at a time: a helper sent to fetch, or whoever went when the box ran dry
+const iceRunner = () => helpers.find(x => x.job === 'fetch') || (S.iceRun && S.iceRun.h.job && G.t - S.iceRun.t < 45 ? S.iceRun.h : null);
 const jobs = {
   shave: {
     label: 'shave ice', done: () => false, release: roleRelease('shaver'),
     plan(h, sp) {
       if (S.closed) return null;
+      if (h.carry) return jobs.fetch.plan(h, sp);
       if (S.shaved >= 3) return { x: SPOT.shave, wait: 'counter full ⋯', quiet: true };
       if (S.hopper <= 0) {
-        if (S.box <= 0) return { x: SPOT.shave, wait: 'out of ice!' };
+        if (S.box <= 0) {
+          const r = iceRunner();
+          if (r && r !== h) return { x: SPOT.shave, wait: `out of ice · ${r.name} went to the 氷屋`, quiet: true };
+          if (!r) S.iceRun = { h, t: G.t };
+          return cover(h, 'fetch', sp, 'out of ice! I\'ll run to the 氷屋 ✦');
+        }
         return { x: SPOT.box, start: () => {
           if (S.box <= 0 || S.hopper > 0) return null;
           let t = 0;
@@ -248,10 +274,18 @@ const jobs = {
     label: 'pour syrup', done: () => false, release: roleRelease('syrup'),
     plan(h, sp) {
       if (S.closed) return null;
+      if (h.carry) return jobs.fetch.plan(h, sp);
       const c = nextUnfilled();
       if (!c) return { x: SPOT.syrup, wait: S.queue.length ? '⋯' : 'no orders ⋯', quiet: true };
-      if (S.shaved <= 0) return { x: SPOT.syrup, wait: 'waiting for ice ⋯', quiet: true };
-      if (S.ready.length >= 4) return { x: SPOT.syrup, wait: 'counter full ⋯', quiet: true };
+      if (S.shaved <= 0) {
+        if (!onRole('shave')) return cover(h, 'shave', sp, 'nobody\'s shaving, so I will ✦');
+        return { x: SPOT.syrup, wait: 'waiting for ice ⋯', quiet: true };
+      }
+      if (S.ready.length >= 4) {
+        const o = S.ready.find(r => !r.c);
+        if (!o) return { x: SPOT.syrup, wait: 'counter full ⋯', quiet: true };
+        S.ready.splice(S.ready.indexOf(o), 1); h.say('nobody\'s waiting for this one… so it\'s mine ✦', 2.2); h.mood('love', 1.6);
+      }
       if (G.locks.syrup) return { x: SPOT.syrup + .6, wait: '⋯', quiet: true };
       return { x: SPOT.syrup, start: () => {
         const c = nextUnfilled();
@@ -268,9 +302,13 @@ const jobs = {
     label: 'serve', done: () => false, release: roleRelease('serve'),
     plan(h, sp) {
       if (S.closed) return null;
+      if (h.carry) return jobs.fetch.plan(h, sp);
       const c = frontCustomer(), r = readyFor(c);
       if (!c) return { x: SPOT.serve, wait: 'no one in line', quiet: true };
-      if (!r) return { x: SPOT.serve, wait: c.free ? 'one for the kid ⋯' : `waiting on ${FLAV[c.flavor].en}`, quiet: true };
+      if (!r) {
+        if (!onRole('syrup')) return cover(h, 'syrup', sp, 'nobody\'s on syrups, so I\'ll pour ✦');
+        return { x: SPOT.serve, wait: c.free ? 'one for the kid ⋯' : `waiting on ${FLAV[c.flavor].en}`, quiet: true };
+      }
       if (G.locks.serve) return { x: SPOT.serve - .6, wait: '⋯', quiet: true };
       return { x: SPOT.serve, start: () => {
         const c = frontCustomer(), r = readyFor(c);
@@ -291,11 +329,11 @@ const jobs = {
       if (back) tween(.6, () => { }, () => { if (S && G.mode === 'play' && !h.job) { GAME.assign(h, back); } });
     },
     plan(h, sp) {
-      if (h.carry) return { x: SPOT.box, start: () => { h.setCarry(false); S.box = Math.min(4, S.box + 2); audio.sfx('clunk', { x: SX.box }); h.say('two blocks ✦', 1.5); credit(h); return null; } };
-      if (S.coins < PRICE.ice) return { x: h.x, wait: `ice is ¥${PRICE.ice} — no money yet` };
+      if (h.carry) return { x: SPOT.box, start: () => { h.setCarry(false); S.box = Math.min(4, S.box + 2); audio.sfx('clunk', { x: SX.box }); h.say('two blocks ✦', 1.5); credit(h); if (S.iceRun?.h === h) S.iceRun = null; return null; } };
       return { x: X.ice + 1.5, start: () => {
-        if (S.coins < PRICE.ice || S.box >= 4) return null;
-        S.coins -= PRICE.ice; audio.sfx('coin', { x: X.ice });
+        if (S.box >= 4) return null;
+        if (S.coins < PRICE.ice) h.say('the 氷屋 says pay later ✦', 2);
+        S.coins = Math.max(0, S.coins - PRICE.ice); audio.sfx('coin', { x: X.ice });
         let t = 0;
         return { kind: 'buy', anim: 'pick', face: Math.PI * .85, verb: 'buying ice', step(dt) { t += dt; if (t > .9 / sp) { h.setCarry(true); return true; } } };
       } };
@@ -538,8 +576,9 @@ export default {
       t: 0, view: 'intro', camX: 0, coins: 500, earned: 0, sold: 0, lost: 0, tries: 0,
       box: 4, hopper: 6, shaveProg: 0, crankA: 0, cranking: 0, shaved: 0, ready: [], pouring: null,
       queue: [], spawnT: 2.5, chipT: 0, lastRole: {}, fish: [], omake: false, mask: null, kid: null, closed: false, tipT: 0,
-      brk: null, breakDone: false, breakTaken: false, breakCut: false, rushSaid: false,
+      brk: null, breakDone: false, breakTaken: false, breakCut: false, rushSaid: false, iceRun: null,
     };
+    helpers.forEach(h => { h.coverJob = null; h.coverT = -99; });
     const street = buildStreet(root, sky.tier);
     P = buildStall(root); P.street = street;
     buildMaskBoard(root);
@@ -601,9 +640,10 @@ export default {
     if (clawd.carry) return 'carrying ice → the ice box at the stall';
     const staffed = ['shave', 'syrup', 'serve'].map(j => helpers.some(h => h.job === j));
     if (G.stats.deleg === 0 && G.t < 40) return 'pick a helper, then a stall job (shaver · syrups · window) · the stall runs while you\'re away';
-    if (S.box <= 0 && S.hopper <= 0) return 'out of ice! send a helper to the 氷屋 ← (or fetch it yourself)';
-    const missing = ['shaving', 'syrup', 'serving'].filter((_, i) => !staffed[i]);
-    if (missing.length && S.queue.length && Math.abs(clawd.x - X.stall - 1) > 5) return `nobody's on ${missing.join(' or ')} — the line is stuck`;
+    if (S.box <= 0 && S.hopper <= 0) { const r = iceRunner(); return r ? `out of ice · ${r.name} ran to the 氷屋 ← for more` : 'out of ice! send a helper to the 氷屋 ← (or fetch it yourself)'; }
+    const missing = ['shaving', 'syrups', 'the window'].filter((_, i) => !staffed[i]);
+    if (missing.length === 3 && S.queue.length) return 'nobody\'s at the stall · pick a helper, then the shaver, syrups or window';
+    if (missing.length && S.queue.length) return `nobody's on ${missing.join(' or ')} · the others cover it, slowly · staff it to go faster`;
     if (!missing.length && Math.abs(clawd.x - X.stall - 1) < 5 && G.t > 20) return `the stall is running ✦ go and enjoy it · 金魚すくい ← · お面 →`;
     if (S.box <= 1 && S.hopper <= 3) return 'the ice is running low · a helper can fetch more from the 氷屋 ←';
     return '';
