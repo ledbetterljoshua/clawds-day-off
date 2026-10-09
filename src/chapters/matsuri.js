@@ -535,6 +535,7 @@ export default {
   jpPreview: 'きょうは なつまつり。',
   prompt: 'run the kakigōri stall', goal: 'run the stall · enjoy the festival',
   sky: 'clear', mood: 'festival', dayLen: 400, phase: [.78, 1], autoNight: false, bounds: [-30, 30],
+  walk: () => !S || S.view === 'street',
   // the HUD reads the clock off the whole 0..1 sky phase; this puts .78 at 6:30 and 1 at 8:30
   clock: [11 * 60 + 25, 20 * 60 + 30], clockNote: '🎆 fireworks at 8:30',
   helpers: [

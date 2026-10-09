@@ -47,15 +47,15 @@ the Milky Way.
 
 ## Controls
 
-Click a station to go work it · click a helper (or its card, or 1–3), then a station, to delegate ·
-A/D walk · Space jump (hold for higher; it also drives the minigames) · E interact · `/` opens the
+Click a station to go work it · click the ground to walk there, or hold to keep walking (A/D work
+too) · click a helper (or its card, or 1–3), then a station, to delegate · Space jump (hold for higher; it also drives the minigames) · E interact · `/` opens the
 terminal (try `/help`, `h3 shave ice`, `/effort max`, `sl`, `hanabi`, `crabsay`) · M mute · Esc cancel.
 
 On the firework night, ✉ send makes a link (`?fw=…`) that opens straight onto your firework, on
 anyone's balcony.
 
-On a phone or iPad: tap a station · tap a helper's card, then a station · tap Clawd to jump · tap the
-laptop for the terminal. On iPad, Share → Add to Home Screen plays it fullscreen; landscape shows the
+On a phone or iPad: tap the ground to walk there, or hold to keep walking · tap a station · tap a
+helper's card, then a station · tap Clawd to jump · tap the laptop for the terminal. On iPad, Share → Add to Home Screen plays it fullscreen; landscape shows the
 whole balcony, and ⚙ → graphics → pretty is worth it on M-series iPads.
 
 ## Run it locally

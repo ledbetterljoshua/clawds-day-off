@@ -897,6 +897,8 @@ const CSS = `
 `;
 
 export default {
+  // while the noodles flow, a tap that misses a bundle shouldn't walk Clawd off the catch spot
+  walk: () => !S || S.stage !== 'flow',
   id: 'somen', day: 3, title: 'Nagashi-sōmen', jp: '流しそうめん', short: 'そうめん', weather: 'はれ · とても あつい',
   blurb: 'Build a bamboo noodle slide, then catch dinner as it flows past.',
   jpPreview: 'きょうは ながしそうめんを する。',

@@ -169,7 +169,8 @@ src/core/
   save.js    localStorage progress (guarded): save.data, save.day(id), save.setDay
   post.js    EffectComposer: scene → ink → (cutscene DOF) → bloom → tone map + grade
   ink.js     InkPass: normal/depth prepass + colored line art
-  input.js   pointer + keys → game; chapters can intercept (def.pointer / def.key)
+  input.js   pointer + keys → game; chapters can intercept (def.pointer / def.key); a press on empty
+             ground walks Clawd (a tap goes there, a hold follows the finger until it lifts)
 src/chapters/   one file per evening + index.js
 ```
 
@@ -232,6 +233,7 @@ export default {
   autoNight: true,                             // finish({complete:false, night:true}) when phase reaches phase[1]
   clock: [17*60, 19*60+45], clockNote: '🌧 shower around 6',
   delegation: true,                            // false hides helper cards, disables selecting
+  walk: true,                                  // tap/click empty ground to walk there, hold to keep walking; false or () => bool turns it off
   helpers: [ {spec:['toppings','plate'], specName:'toppings'}, {...}, {...} ],  // per-helper role tonight
   helperCount: 3,
   intro: [['$ git pull'], ['  Already up to date.', '#7bd88f'], ...],  // lines before the prompt

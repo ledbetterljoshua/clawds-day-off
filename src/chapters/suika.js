@@ -788,7 +788,7 @@ export default {
   prompt: 'suikawari at the sea', goal: 'crack the watermelon (スイカ割り)',
   sky: 'clear', mood: 'golden', dayLen: Infinity, phase: [.34, .62], autoNight: false,
   clock: [14 * 60 + 30, 19 * 60 + 30], clockNote: '🍉 suikawari at the sea',
-  delegation: false, bounds: [-20, 20], chatter: [],
+  delegation: false, bounds: [-20, 20], chatter: [], walk: false,
   helpers: [{ specName: 'precise' }, { specName: 'dreamy' }, { specName: 'eager' }],
 
   setup(root, game) {

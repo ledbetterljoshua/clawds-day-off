@@ -18,10 +18,13 @@ import { mini } from './core/minigames.js';
 import { settings } from './core/settings.js';
 import { award, setStickerToast } from './core/stickers.js';
 import { firework, sparkle, puff, disposeUnder } from './core/fx.js';
-import { initInput, setHits, held, pointer } from './core/input.js';
+import { initInput, setHits, held, pointer, holdTick } from './core/input.js';
 import { CHAPTERS, WEEK } from './chapters/index.js';
 
 const ringMat = new THREE.MeshBasicMaterial({ color: COL.orange, transparent: true, opacity: .7, depthWrite: false, toneMapped: false });
+// where Clawd is walking to after a tap on the ground
+const walkMark = new THREE.Mesh(new THREE.RingGeometry(.3, .4, 40), new THREE.MeshBasicMaterial({ color: 0xfff1d6, transparent: true, opacity: .8, depthWrite: false, toneMapped: false }));
+walkMark.rotation.x = -Math.PI / 2; walkMark.visible = false; scene.add(walkMark);
 let root = null, rings = {}, finishResolve = null, introTap = null, hover = null, runId = 0, snapWaiters = [], lastPhoto = null, chapterCmds = [];
 const LANDING = [-6.95, -6.25, -5.55];
 
@@ -262,6 +265,16 @@ function ringOf(k) {
 }
 
 // ── player ──
+// tap or click the ground: Clawd walks there (chapters can turn it off with walk: false or a function)
+function canWalk() { const w = G.chapter?.walk; return G.mode === 'play' && !G.mini && !G.selected && (typeof w === 'function' ? w() : w) !== false; }
+function walkTo(x) {
+  if (x == null || !canWalk()) return false;
+  clawd.wake(); clawd.pending = null; clawd.faceOverride = null;
+  clawd.targetX = clamp(x, G.bounds[0] + .2, G.bounds[1] - .2);
+  if (!walkMark.visible || Math.abs(walkMark.position.x - clawd.targetX) > .6) walkMark.scale.setScalar(1.5);
+  walkMark.position.set(clawd.targetX, .015, clawd.z); walkMark.material.opacity = .95; walkMark.visible = true;
+  return true;
+}
 function playerGo(k) {
   mini.close(true);
   clawd.wake();
@@ -294,7 +307,11 @@ initInput({
     hud.tip(e && e.pointerType !== 'touch' ? txt : '', e?.clientX, e?.clientY);
     $('#c').style.cursor = hit ? 'pointer' : 'default';
   },
-  click(hit) {
+  walk(x, how) {
+    if (how === 'stop') { if (G.mode === 'play' && canWalk()) clawd.targetX = clawd.x; return true; }
+    return walkTo(x);
+  },
+  click(hit, e, groundX) {
     const def = G.chapter; if (!def) return;
     if (hit?.crab && hit.crab !== clawd) {
       if (def.delegation === false) { const h = hit.crab; h.say(pick(h.voice) || '✦'); h.hop(.3); return; }
@@ -307,7 +324,8 @@ initInput({
       else playerGo(k);
       return;
     }
-    select(null);
+    if (G.selected) { select(null); return; }
+    walkTo(groundX);
   },
   keyup(e) { if (e.code === 'Space') clawd.jumpRelease(); },
   key(e) {
@@ -383,6 +401,7 @@ function update(dt) {
     if (L || R) { mini.close(true); clawd.pending = null; clawd.targetX = clamp(clawd.x + (L ? -1 : 1), G.bounds[0] + .2, G.bounds[1] - .2); }
     else if (wasWalking && !clawd.pending && !G.mini) clawd.targetX = clawd.x;
     wasWalking = L || R;
+    holdTick();
     if (clawd.pending && clawd.arrived()) { const k = clawd.pending; clawd.pending = null; playerInteract(k); }
     runChatter();
     if (helpers.filter(h => h.action).length >= 3) award('parallel');
@@ -390,6 +409,14 @@ function update(dt) {
     if (G.mini) { G.stats.you += dt; G.mini.update(dt); }
   }
   sky.focus.x = G.bounds[1] - G.bounds[0] > 20 ? cam.pos.x : 0;
+  if (walkMark.visible) {
+    // shrink in, pulse while Clawd is on the way, fade once there (or once something else moves him)
+    const there = Math.abs(clawd.x - walkMark.position.x) < .12 || Math.abs(clawd.targetX - walkMark.position.x) > .02 || G.mode !== 'play';
+    walkMark.scale.setScalar(lerp(walkMark.scale.x, 1, Math.min(1, dt * 10)));
+    walkMark.material.opacity = there ? walkMark.material.opacity - dt * 3 : .75 + Math.sin(G.time * 6) * .2;
+    walkMark.position.z = clawd.z;
+    if (walkMark.material.opacity <= 0) walkMark.visible = false;
+  }
   if (def && def.update) { try { def.update(dt, game); } catch (e) { console.error(e); } }
   // station rings: hovered station, or every open job while a helper is selected
   const suggest = G.mode === 'play' && def?.highlight ? def.highlight() : null;
@@ -423,7 +450,7 @@ function teardown() {
     root.traverse(o => { if (o.isMesh || o.isPoints) { o.geometry?.dispose?.(); } });
     root = null;
   }
-  finishResolve = null; introTap = null; stationHits = [];
+  finishResolve = null; introTap = null; stationHits = []; walkMark.visible = false;
   hud.hide(); game.setScene(); sky.lanternScale = 1;
   G.chapter = null; G.stations = {}; G.bounds = [-9.8, 9.8];
 }
