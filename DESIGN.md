@@ -133,7 +133,8 @@ src/core/
   fx.js      Particles (pooled points), sparkle, puff, firework({type:'peony'|'chrysanthemum'|'willow'|'ring'|'clawd'})
   audio.js   procedural audio: audio.sfx(name, opts), audio.register(name, fn), tone(), noise(), setMood, setAmbience
   terminal.js  laptop screen texture + interactive terminal overlay; term.log, term.register
-  camera.js  cam.play(), cam.shot(pos, look, {fov,k,cut,drift}), cam.shots(list)
+  camera.js  cam.play(), cam.shot(pos, look, {fov,k,cut,drift}), cam.shots(list); in the play framing
+             the camera leans slightly toward the mouse but keeps its aim (parallax; PAR in camera.js)
   hud.js     todo / clock / crew cards / hint / tooltip / hud.toast(html)
   diary.js   title cover, the week, day pages, photo capture
   save.js    localStorage progress (guarded): save.data, save.day(id), save.setDay

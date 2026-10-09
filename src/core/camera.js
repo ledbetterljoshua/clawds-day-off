@@ -41,6 +41,9 @@ export const cam = {
     cam.pos.lerp(cam.tpos, k); cam.look.lerp(cam.tlook, k);
     cam.fov = lerp(cam.fov, cam.tfov, k);
     camera.position.copy(cam.pos);
+    const on = cam.mode === 'play' && !reducedMotion(), kp = damp(PAR.k, dt);
+    par.x = lerp(par.x, on ? par.tx : 0, kp); par.y = lerp(par.y, on ? par.ty : 0, kp);
+    camera.position.x += par.x * PAR.x; camera.position.y -= par.y * PAR.y;
     if (cam.drift) { camera.position.x += Math.sin(G.time * .5) * .04 * cam.drift; camera.position.y += Math.sin(G.time * .37) * .03 * cam.drift; }
     if (cam.shake > 0) { cam.shake = Math.max(0, cam.shake - dt * 2); const s = reducedMotion() ? 0 : cam.shake * .08; camera.position.x += (Math.random() - .5) * s; camera.position.y += (Math.random() - .5) * s; }
     camera.lookAt(cam.look);
@@ -48,6 +51,19 @@ export const cam = {
   },
 };
 cam.frame(); cam.pos.copy(cam.tpos); cam.look.copy(cam.tlook);
+
+// mouse parallax: in the play framing the camera leans a little toward the pointer but keeps
+// its aim, so the counter (and anything you'd click) stays put while the town behind it slides
+// and the railing in front shifts the other way
+const PAR = { x: .32, y: .16, k: 2.2 };
+const par = { x: 0, y: 0, tx: 0, ty: 0 };
+addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  par.tx = clamp(e.clientX / innerWidth * 2 - 1, -1, 1); par.ty = clamp(e.clientY / innerHeight * 2 - 1, -1, 1);
+});
+const recenter = () => { par.tx = par.ty = 0; };
+document.documentElement.addEventListener('mouseleave', recenter);
+addEventListener('blur', recenter);
 
 async function playShots(list, skipRef) {
   for (const s of list) {
