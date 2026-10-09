@@ -113,7 +113,8 @@ const skyMat = new THREE.ShaderMaterial({
     // x = signed distance (negative inside), y = puff height (each disc a sphere cap) for shading
     vec2 cumulus(vec2 p, vec2 o, float S, float tall, float sd){
       vec2 q = (p - o) / S; q.y /= tall;
-      if (abs(q.x) > 2.9 || q.y > 2.7 || q.y < -.3) return vec2(.25 * S, 0.);
+      // outside the box: comfortably 'not cloud' even for a tiny cloud that's just growing in
+      if (abs(q.x) > 2.9 || q.y > 2.7 || q.y < -.3) return vec2(max(.25 * S, .02), 0.);
       float lean = (hash12(vec2(sd, 23.)) - .5) * .5, d = 1e3, H = 0.;
       for (int i = 0; i < 9; i++) {
         float fi = float(i);
