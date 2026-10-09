@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Clawd's Day Off</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-180.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Clawd's Day Off">
+<meta name="theme-color" content="#2a2440">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Klee+One:wght@400;600&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
 <style>
@@ -19,6 +27,7 @@
   --hand:'Klee One','M PLUS Rounded 1c',ui-rounded,system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{touch-action:manipulation}
 html,body{height:100%;overflow:hidden;background:#cfe6f7;color:var(--ink);font-family:var(--mono);-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -48,21 +57,21 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 #clock button{background:none;border:0;color:var(--dim);font-size:11px;cursor:pointer;margin-top:2px}
 #clock button:hover{color:var(--ink)}
 
-#crew{bottom:max(14px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:8px}
+#crew{bottom:max(14px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:8px;width:max-content;max-width:calc(100vw - 20px)}
 .card{text-align:left;cursor:pointer;padding:9px 12px;min-width:150px;display:flex;flex-direction:column;gap:2px;font-size:12px;transition:transform .15s,border-color .15s,background .15s}
 .card:hover{transform:translateY(-2px)}
 .card.sel{border-color:var(--acc);background:rgba(60,32,24,.9);box-shadow:0 0 0 2px rgba(217,119,87,.35)}
 .card b{font-weight:600}
 .card .spec{color:var(--dim);font-size:11px}
 .card .st{color:var(--acc);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
-#hint{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 74px);left:50%;transform:translateX(-50%);font-size:12px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.55);white-space:nowrap;pointer-events:none;text-align:center}
+#hint{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 74px);left:50%;transform:translateX(-50%);font-size:12px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.55);width:max-content;max-width:min(92vw,760px);pointer-events:none;text-align:center}
 
 #tip{position:fixed;z-index:6;pointer-events:none;font-size:11.5px;padding:6px 9px;border-radius:8px;white-space:nowrap;transform:translate(14px,14px)}
 #bubbles{position:fixed;inset:0;pointer-events:none;z-index:4}
 .bub{position:absolute;transform:translate(-50%,-100%);background:rgba(22,20,27,.9);border:1px solid var(--line);color:var(--ink);font-size:11.5px;padding:4px 9px;border-radius:9px;white-space:nowrap;transition:opacity .25s}
 .bub::after{content:'';position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(22,20,27,.9)}
 
-#toasts{position:fixed;top:max(84px,calc(env(safe-area-inset-top) + 84px));left:50%;transform:translateX(-50%);z-index:8;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+#toasts{position:fixed;top:max(84px,calc(env(safe-area-inset-top) + 84px));left:50%;transform:translateX(-50%);z-index:8;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:max-content;max-width:calc(100vw - 32px)}
 .toast{padding:9px 14px;font-size:12.5px;opacity:0;transform:translateY(-8px);transition:opacity .35s,transform .35s}
 .toast.in{opacity:1;transform:none}
 
@@ -106,7 +115,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-actio
 #term .tin{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #ffffff14}
 #term .pr{color:var(--acc);font-weight:600}
 #term input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--ink);font:inherit;font-size:16px}
-@media (min-width:700px){#term input{font-size:13px}}
+@media (min-width:700px) and (pointer:fine){#term input{font-size:13px}}
 
 /* ── the diary ── */
 #overlay{position:fixed;inset:0;z-index:20;transition:opacity .6s;overflow:auto}

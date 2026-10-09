@@ -1,11 +1,18 @@
 // In-play HUD: the todo panel (Claude Code style), sky clock, helper cards, hint line,
 // hover tooltip, and toasts. Reads the active chapter for content.
 import { G } from './state.js';
-import { $, esc } from './util.js';
+import { $, esc, forTouch } from './util.js';
 import { helpers } from './crab.js';
 import { audio } from './audio.js';
 
 const ids = ['#todo', '#clock', '#crew', '#hint'];
+// toasts sit between the todo and clock panels; where that gap is too narrow (tablets in portrait,
+// phones) they drop below the taller panel
+function placeToasts() {
+  const box = $('#toasts'), t = $('#todo').getBoundingClientRect(), c = $('#clock').getBoundingClientRect();
+  const fits = !t.width || box.offsetWidth + 24 <= c.left - t.right;
+  box.style.top = fits ? '' : Math.max(t.bottom, c.bottom) + 10 + 'px';
+}
 let todoSig = '', hudT = 0;
 
 export const hud = {
@@ -62,7 +69,7 @@ export const hud = {
     return `${hh % 12 || 12}:${String(mm).padStart(2, '0')} ${hh >= 12 ? 'pm' : 'am'}`;
   },
 
-  setHint(t) { const h = $('#hint'); if (h.textContent !== t) h.textContent = t; },
+  setHint(t) { const h = $('#hint'); t = forTouch(t); if (h.textContent !== t) h.textContent = t; },
 
   tip(text, x, y) {
     const tip = $('#tip');
@@ -71,8 +78,8 @@ export const hud = {
   },
 
   toast(html, { dur = 3.2, kind = '' } = {}) {
-    const d = document.createElement('div'); d.className = 'toast panel ' + kind; d.innerHTML = html;
-    $('#toasts').appendChild(d);
+    const d = document.createElement('div'); d.className = 'toast panel ' + kind; d.innerHTML = forTouch(html);
+    $('#toasts').appendChild(d); placeToasts();
     requestAnimationFrame(() => d.classList.add('in'));
     setTimeout(() => { d.classList.remove('in'); setTimeout(() => d.remove(), 500); }, dur * 1000);
     audio.sfx('chime');

@@ -122,7 +122,8 @@ src/main.js           boot + the frame loop
 src/game.js           chapter runner, intro, input → delegation, terminal gameplay commands
 src/core/
   state.js   G (shared mutable state), resetStats, tiny event bus
-  util.js    $ lerp clamp ease easeOut easeOutBack rand randi pick smooth damp esc wrapAngle
+  util.js    $ lerp clamp ease easeOut easeOutBack rand randi pick smooth damp esc wrapAngle;
+             isTouch, forTouch(s) (prompts say tap, keyboard alternatives drop out; HUD and minigames use it)
   gfx.js     THREE, renderer, scene, camera, toon(), mesh(), group(), box/rbox/cyl/sph, canvasTex, dotTex, MAT, COL, hitMat, toScreen
   tween.js   tween(dur, fn(e), done, tag), sleep(s), until(pred, timeout), killTweens(tag)
   world.js   the balcony, city, lanterns, furin, laptop; world.wind (0..1.25 breeze); CLAWD_PIXELS

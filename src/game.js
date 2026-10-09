@@ -2,7 +2,7 @@
 // Chapters are plain objects (see DESIGN.md, "Chapter contract"); this file drives them.
 import { G, resetStats, on } from './core/state.js';
 import { THREE, V3, scene, mesh, box, hitMat, COL } from './core/gfx.js';
-import { $, clamp, rand, pick, lerp, easeOutBack } from './core/util.js';
+import { $, clamp, rand, pick, lerp, easeOutBack, isTouch } from './core/util.js';
 import { tween, sleep, until } from './core/tween.js';
 import { crew, clawd, helpers, PERSONA } from './core/crab.js';
 import { assign, helperTick, cancelAction, unassign, jobDef, jobDone, lock, unlock, lockedBy, credit } from './core/agents.js';
@@ -79,7 +79,7 @@ export const game = {
     def.start && def.start(game);
     if (!save.data.seenTips && def.delegation !== false) {
       save.data.seenTips = true; save.write();
-      const tips = ['click a station to do the job yourself', 'or click a helper, then a station, to delegate it', 'specialists ✦ work twice as fast · press / for the terminal'];
+      const tips = ['click a station to do the job yourself', 'or click a helper, then a station, to delegate it', `specialists ✦ work twice as fast · ${isTouch() ? 'tap the laptop' : 'press /'} for the terminal`];
       tips.forEach((t, i) => tween(1.2 + i * 3.4, () => {}, () => G.mode === 'play' && hud.toast(t, { dur: 3.2 })));
     }
     const result = await new Promise(r => finishResolve = r);

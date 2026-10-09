@@ -15,4 +15,6 @@ export const damp = (k, dt) => 1 - Math.exp(-k * dt);
 export const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 export const wrapAngle = a => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; };
 export const isTouch = () => matchMedia('(pointer: coarse)').matches;
+// on touch screens prompts say tap, and the keyboard alternatives drop out
+export const forTouch = s => !isTouch() ? s : s.replace(/\bclick/g, 'tap').replace(/\bClick/g, 'Tap').replace(/ · or mash space| or space\b/g, '');
 export const reducedMotion = () => document.documentElement.dataset.calm === '1' || matchMedia('(prefers-reduced-motion: reduce)').matches;

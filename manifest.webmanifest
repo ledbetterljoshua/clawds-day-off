@@ -1,0 +1,13 @@
+{
+  "name": "Clawd's Day Off",
+  "short_name": "Clawd's Day Off",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2a2440",
+  "theme_color": "#2a2440",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

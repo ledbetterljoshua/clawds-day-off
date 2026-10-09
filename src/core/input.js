@@ -3,7 +3,7 @@
 import { THREE, camera } from './gfx.js';
 import { G } from './state.js';
 import { $ } from './util.js';
-import { crew } from './crab.js';
+import { crew, clawd } from './crab.js';
 import { term } from './terminal.js';
 
 export const ray = new THREE.Raycaster();
@@ -22,8 +22,10 @@ export function pick(e) {
   setRay(e);
   const c = ray.intersectObjects(crewMeshes(), false)[0];
   const s = ray.intersectObjects(hits.filter(h => h.visible !== false), false)[0];
-  // a station in front of a crab wins only if it's clearly closer
-  if (c && (!s || c.distance < s.distance + .3)) return { crab: c.object.userData.crab };
+  // a station in front of a crab wins only if it's clearly closer; clawd never hides one (tapping
+  // him is only a hop, and on a touch screen there's no hover to show what's behind him)
+  const crab = c?.object.userData.crab;
+  if (c && (!s || (crab !== clawd && c.distance < s.distance + .3))) return { crab };
   if (s) return { station: s.object.userData.station };
   return null;
 }

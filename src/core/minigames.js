@@ -2,7 +2,7 @@
 //   { kind, update(dt), act(), actUp(), close(cancelled) }
 // act/actUp map to Space down/up (and taps); the game loop calls update(dt).
 import { G } from './state.js';
-import { $, clamp, rand } from './util.js';
+import { $, clamp, rand, forTouch } from './util.js';
 import { toScreen } from './gfx.js';
 import { clawd } from './crab.js';
 import { audio } from './audio.js';
@@ -17,7 +17,7 @@ function place() {
 
 function open(kind, html, ctl, onClose) {
   mini.close(true);
-  el.innerHTML = html;
+  el.innerHTML = forTouch(html);
   place();
   el.classList.remove('hidden');
   const c = { kind, update() {}, act() {}, actUp() {}, ...ctl };

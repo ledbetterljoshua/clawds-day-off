@@ -40,6 +40,10 @@ Click a station to go work it · click a helper (or its card, or 1–3), then a 
 A/D walk · Space jump (hold for higher; it also drives the minigames) · E interact · `/` opens the
 terminal (try `/help`, `h3 shave ice`, `/effort max`, `sl`, `hanabi`, `crabsay`) · M mute · Esc cancel.
 
+On a phone or iPad: tap a station · tap a helper's card, then a station · tap Clawd to jump · tap the
+laptop for the terminal. On iPad, Share → Add to Home Screen plays it fullscreen; landscape shows the
+whole balcony, and ⚙ → graphics → pretty is worth it on M-series iPads.
+
 ## Run it locally
 
 ```

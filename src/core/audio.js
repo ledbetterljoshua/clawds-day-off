@@ -59,7 +59,7 @@ export const audio = {
   get muted() { return A.muted; },
 
   init() {
-    if (E.live) { if (E.live.ctx.state === 'suspended') E.live.ctx.resume().catch(() => { }); return; }
+    if (E.live) { if (E.live.ctx.state !== 'running' && E.live.ctx.state !== 'closed') E.live.ctx.resume().catch(() => { }); return; }
     const Ctx = window.AudioContext || window.webkitAudioContext; if (!Ctx) return;
     const ctx = new Ctx({ latencyHint: 'interactive' });
     const b = makeBundle(ctx, A.vol);
@@ -123,6 +123,16 @@ export const audio = {
   update(dt) { tick(); },
   get perf() { return { ...A.perf, avg: A.perf.ticks ? A.perf.ms / A.perf.ticks : 0 }; },
 };
+
+// quiet while the tab is hidden; iPadOS can also stop the context when you switch apps, so the
+// next touch or key wakes it
+document.addEventListener('visibilitychange', () => {
+  const c = E.live?.ctx; if (!c || c.state === 'closed') return;
+  (document.hidden ? c.suspend() : c.resume()).catch(() => { });
+});
+const wake = () => { if (E.live && !document.hidden) audio.init(); };
+addEventListener('pointerdown', wake, true);
+addEventListener('keydown', wake, true);
 
 // ── measurement: render sounds through the same mixer into an OfflineAudioContext ──
 // fn(bundle) must schedule synchronously; times start at 0.
