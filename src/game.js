@@ -40,6 +40,11 @@ export const game = {
     helpers.forEach(h => h.reset({ visible: false }));
     const d = +G.dev.get('day');
     if (d && CHAPTERS[d - 1]) { game.run(CHAPTERS[d - 1]); return; }
+    const sk = G.dev.get('proto');
+    if (sk && /^[a-z0-9-]+$/.test(sk)) {
+      try { game.run((await import(`./chapters/proto/${sk}.js`)).default); return; }
+      catch (e) { console.error(e); }
+    }
     diary.showTitle();
   },
 
@@ -51,7 +56,7 @@ export const game = {
     if (my !== runId) return;
     teardown();
     diary.hide();
-    G.chapter = def; G.locks = {}; G.t = 0; G.selected = null; G.effort = 0; resetStats(); lastPhoto = null; G.polaroid = null;
+    G.chapter = def; G.bounds = def.bounds || [-9.8, 9.8]; G.locks = {}; G.t = 0; G.selected = null; G.effort = 0; resetStats(); lastPhoto = null; G.polaroid = null;
     chatter = (def.chatter || DEFAULT_CHATTER).map(c => ({ ...c, done: false }));
     G.speed = +(G.dev.get('speed') || 1);
     G.phase = def.phase?.[0] ?? 0;
@@ -91,6 +96,14 @@ export const game = {
     clawd.pending = null;
     try { await def.ending(result, game); } catch (e) { console.error(e); }
     if (my !== runId) return;
+    if (def.proto) {
+      const photo = result.quit ? null : lastPhoto || await game.snap();
+      if (my !== runId) return;
+      const text = !result.quit && def.diary ? def.diary(result, G.stats) : null;
+      audio.setMood('quiet');
+      diary.showSketch(def, { photo, text, stats: result.quit ? '' : statsLine(result), stamp: result.stamp || (result.complete ? (result.perfect ? 'perfect' : 'good') : 'tried') });
+      return;
+    }
     if (result.quit) {
       // ending early doesn't fill in the diary page or unlock tomorrow
       audio.setMood('quiet');
@@ -141,6 +154,12 @@ export const game = {
     const inner = c.close;
     c.close = (cancelled) => { inner(cancelled); unlock(key, clawd); clawd.action = null; clawd.workAnim = null; clawd.faceOverride = null; };
     return c;
+  },
+
+  // an evening somewhere other than the balcony hides it; teardown puts everything back
+  setScene({ balcony = true, backdrop = true, canopy = true } = {}) {
+    world.setBalcony(balcony); world.backdrop.setVisible(backdrop); sky.canopyOn = canopy;
+    setHits(G.stations && root ? hitList() : balcony ? [world.laptopHit] : []);
   },
 
   playerGo, select, spotOf, credit, firework, sparkle, puff, assign, lock, unlock, lockedBy,
@@ -222,16 +241,17 @@ function spotOf(k) {
   const s = G.stations[k]; if (!s) return clawd.x;
   return typeof s.spot === 'function' ? s.spot() : s.spot;
 }
+let stationHits = [];
 function buildStations() {
-  const list = [world.laptopHit];
-  rings = {};
+  rings = {}; stationHits = [];
   for (const [k, s] of Object.entries(G.stations)) {
-    if (s.hitObj) { const o = typeof s.hitObj === 'function' ? s.hitObj() : s.hitObj; o.userData.station = k; list.push(o); }
-    else if (s.hit) { const [w, h, d, x, y, z] = s.hit; const m = mesh(box(w, h, d), hitMat, x, y, z, root, false); m.userData.station = k; list.push(m); }
+    if (s.hitObj) { const o = typeof s.hitObj === 'function' ? s.hitObj() : s.hitObj; o.userData.station = k; stationHits.push(o); }
+    else if (s.hit) { const [w, h, d, x, y, z] = s.hit; const m = mesh(box(w, h, d), hitMat, x, y, z, root, false); m.userData.station = k; stationHits.push(m); }
     const r = new THREE.Mesh(new THREE.RingGeometry(.5, .6, 40), ringMat.clone()); r.rotation.x = -Math.PI / 2; r.visible = false; root.add(r); rings[k] = r;
   }
-  setHits(list);
+  setHits(hitList());
 }
+const hitList = () => world.balconyOn ? [world.laptopHit, ...stationHits] : stationHits;
 function ringOf(k) {
   const s = G.stations[k];
   if (!s) return null;
@@ -244,7 +264,7 @@ function playerGo(k) {
   mini.close(true);
   clawd.wake();
   clawd.pending = k;
-  clawd.targetX = clamp(spotOf(k), -9.8, 9.8);
+  clawd.targetX = clamp(spotOf(k), G.bounds[0], G.bounds[1]);
 }
 function playerInteract(k) {
   const def = G.chapter;
@@ -358,7 +378,7 @@ function update(dt) {
       if (G.phase >= p1 && def.autoNight !== false) game.finish({ complete: false, night: true });
     }
     const L = held['a'] || held['arrowleft'], R = held['d'] || held['arrowright'];
-    if (L || R) { mini.close(true); clawd.pending = null; clawd.targetX = clamp(clawd.x + (L ? -1 : 1), -9.6, 9.6); }
+    if (L || R) { mini.close(true); clawd.pending = null; clawd.targetX = clamp(clawd.x + (L ? -1 : 1), G.bounds[0] + .2, G.bounds[1] - .2); }
     else if (wasWalking && !clawd.pending && !G.mini) clawd.targetX = clawd.x;
     wasWalking = L || R;
     if (clawd.pending && clawd.arrived()) { const k = clawd.pending; clawd.pending = null; playerInteract(k); }
@@ -367,6 +387,7 @@ function update(dt) {
     if (def.delegation !== false) helpers.forEach(h => h.g.visible && helperTick(h, dt));
     if (G.mini) { G.stats.you += dt; G.mini.update(dt); }
   }
+  sky.focus.x = G.bounds[1] - G.bounds[0] > 20 ? cam.pos.x : 0;
   if (def && def.update) { try { def.update(dt, game); } catch (e) { console.error(e); } }
   // station rings: hovered station, or every open job while a helper is selected
   const suggest = G.mode === 'play' && def?.highlight ? def.highlight() : null;
@@ -400,9 +421,9 @@ function teardown() {
     root.traverse(o => { if (o.isMesh || o.isPoints) { o.geometry?.dispose?.(); } });
     root = null;
   }
-  finishResolve = null; introTap = null;
-  hud.hide(); setHits([world.laptopHit]);
-  G.chapter = null; G.stations = {};
+  finishResolve = null; introTap = null; stationHits = [];
+  hud.hide(); game.setScene(); sky.lanternScale = 1;
+  G.chapter = null; G.stations = {}; G.bounds = [-9.8, 9.8];
 }
 
 // ── settings & mute ──

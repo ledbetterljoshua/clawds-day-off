@@ -128,6 +128,26 @@ export const diary = {
     if (fresh && e?.done) { const st = $('.dp-pic .stamp', R); st?.classList.add('slam'); setTimeout(() => audio.sfx('stamp'), 420); }
   },
 
+  // the page a sketch evening (?proto=…) would have made; nothing is saved
+  showSketch(def, { photo = null, text = null, stats = '', stamp = 'good' } = {}) {
+    G.mode = 'diary';
+    const dt = dateOf(def);
+    ov.className = 'book-view';
+    ov.innerHTML = `<div class="book"><div class="pg left" id="pgL"></div><div class="pg right" id="pgR"></div></div>`;
+    $('#pgL', ov).innerHTML = `<div class="pg-head"><span class="pg-kicker">a sketch · not in the diary yet</span><h2>${esc(def.jp)} ${mac(def.title)}</h2></div>
+      <div class="dp-text">${(def.sketch || [def.blurb || '']).map(l => `<p>${mac(l)}</p>`).join('')}</div>
+      <div class="pg-foot"><button class="ghost" id="cover">cover</button><span class="credit">${CREDIT}</span></div>`;
+    $('#pgR', ov).innerHTML = `
+      <div class="dp-date"><span>${dt.m}がつ ${dt.d}にち ${dt.wd}ようび</span><span class="dp-wx">てんき: ${esc(def.weather || 'はれ')}</span></div>
+      <div class="dp-pic">${photo ? `<img src="${photo}" alt="${esc(def.title)} — the evening's photo">` : `<div class="dp-empty"><b>${esc(def.jp)}</b><span>${mac(def.blurb || '')}</span></div>`}${photo ? stampSVG(stamp, true) : ''}</div>
+      <div class="dp-text">${text ? `<p class="jp">${esc(text.jp || '')}</p>${(text.lines || []).map(l => `<p>${mac(l)}</p>`).join('')}` : ''}</div>
+      ${stats ? `<div class="dp-stats">${esc(stats)}</div>` : ''}
+      <div class="dp-actions"><button class="go" id="play">play this sketch again</button></div>`;
+    $('#play', ov).onclick = () => onPlay(def);
+    $('#cover', ov).onclick = () => diary.showTitle();
+    if (photo) { const st = $('.dp-pic .stamp', ov); st?.classList.add('slam'); setTimeout(() => audio.sfx('stamp'), 420); }
+  },
+
   // grab the current frame as a small jpeg (call right after a render)
   capture(w = 640, h = 400) {
     try {

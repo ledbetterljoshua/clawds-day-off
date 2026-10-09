@@ -25,8 +25,8 @@ export const cam = {
   frame(out = cam) {
     const asp = innerWidth / innerHeight, t = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
     const d = clamp(9.9 / (t * asp), 12, 19), halfW = d * t * asp;
-    const fx = cam.followX ?? clawd.x;
-    const x = halfW < 9.9 ? clamp(fx, -9.9 + halfW, 9.9 - halfW) : 0;
+    const fx = cam.followX ?? clawd.x, [b0, b1] = G.bounds;
+    const x = halfW < (b1 - b0) / 2 + .1 ? clamp(fx, b0 - .1 + halfW, b1 + .1 - halfW) : (b0 + b1) / 2;
     out.tpos.set(x, 1.2 + d * .175, d); out.tlook.set(x, 1.2, -.3);
     return out;
   },

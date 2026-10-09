@@ -242,6 +242,17 @@ when the player serves (usually from `interact` on the serve station). Night cal
 shows the diary page. Always handle `result.quit` (the player ended the evening early) with
 a short ending.
 
+### Sketch evenings (`?proto=<id>`)
+
+A sketch is a chapter at `src/chapters/proto/<id>.js` with `proto: true`, loaded only by
+`?proto=<id>`. It isn't part of the week: its ending shows a diary page (`diary.showSketch`)
+and nothing is saved. Extra fields: `sketch: ['lines for the left page']` and
+`bounds: [x0, x1]`, how far anyone can walk (default the counter, `[-9.8, 9.8]`). On a set
+wider than 20 the play camera follows Clawd and the key light's shadow map follows the camera.
+An evening somewhere other than the balcony calls
+`game.setScene({ balcony: false, backdrop: false, canopy: false })` in `setup` and uses
+`introRun`, since there's no laptop; teardown puts the balcony back.
+
 ### Jobs (helper AI)
 
 A helper assigned to a job calls `plan(h, sp)` every frame until `done()`. `sp` is its speed

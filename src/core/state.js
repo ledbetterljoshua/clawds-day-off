@@ -9,6 +9,7 @@ export const G = {
   stations: {},       // active chapter's stations
   selected: null,     // helper awaiting a delegation click
   locks: {},          // station key -> crab currently working it
+  bounds: [-9.8, 9.8], // how far along x anyone can walk (a chapter's `bounds` widens it)
   mini: null,         // open minigame controller
   effort: 0,          // seconds left on the /effort max buff
   flash: 0, flashCol: null,
