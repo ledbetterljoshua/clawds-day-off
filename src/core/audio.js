@@ -124,15 +124,24 @@ export const audio = {
   get perf() { return { ...A.perf, avg: A.perf.ticks ? A.perf.ms / A.perf.ticks : 0 }; },
 };
 
-// quiet while the tab is hidden; iPadOS can also stop the context when you switch apps, so the
-// next touch or key wakes it
+// quiet while the tab is hidden; iOS can also stop the context when you switch apps
 document.addEventListener('visibilitychange', () => {
   const c = E.live?.ctx; if (!c || c.state === 'closed') return;
   (document.hidden ? c.suspend() : c.resume()).catch(() => { });
 });
-const wake = () => { if (E.live && !document.hidden) audio.init(); };
-addEventListener('pointerdown', wake, true);
-addEventListener('keydown', wake, true);
+
+// Phones only let sound start from a real gesture: on touch that's touchend / pointerup / click,
+// not pointerdown. iOS also mutes Web Audio with the ringer switch unless the page says it plays
+// media, so the first gesture sets the audio session to playback (the ♪ button still mutes).
+// Any gesture starts or wakes the context, and older iOS also wants a sound started inside it.
+function unlock() {
+  if (document.hidden) return;
+  try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch { /* not settable */ }
+  audio.init();
+  const c = E.live?.ctx; if (!c || c.state === 'running') return;
+  try { const src = c.createBufferSource(); src.buffer = c.createBuffer(1, 1, c.sampleRate); src.connect(c.destination); src.start(0); } catch { /* closed */ }
+}
+for (const ev of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) addEventListener(ev, unlock, true);
 
 // ── measurement: render sounds through the same mixer into an OfflineAudioContext ──
 // fn(bundle) must schedule synchronously; times start at 0.

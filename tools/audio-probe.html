@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clawd's Day Off · sound check</title>
+<body style="font:18px/1.45 system-ui,sans-serif;margin:0;padding:24px 18px;background:#fbfaf6;color:#2b2f3a">
+<h2 style="margin:0 0 6px">sound check</h2>
+<p style="margin:0 0 16px;color:#5b6274">Tap the box. With sound working you'll hear a soft pop every second and a half, even with the
+ringer switch on silent.</p>
+<pre id="o" style="font-size:16px;white-space:pre-wrap;background:#fff;border:1px solid #e4dfd4;border-radius:12px;padding:12px"></pre>
+<div style="margin-top:18px;height:220px;border:3px dashed #d97757;border-radius:16px;display:grid;place-items:center;font-weight:600">tap here</div>
+<script type="module">
+// runs the game's real audio module: the same unlock, the same mixer
+import { audio } from '../src/core/audio.js';
+const P = new URLSearchParams(location.search);
+// ?early creates the context before any gesture, the way a ?day= or ?fw= link does
+if (P.has('early')) audio.init();
+const o = document.getElementById('o'); let taps = 0, pops = 0;
+addEventListener('touchend', () => taps++, true);
+addEventListener('click', () => taps += matchMedia('(pointer:coarse)').matches ? 0 : 1, true);
+setInterval(() => {
+  o.textContent = [
+    'sound: ' + (audio.ctx ? audio.ctx.state : 'not started (tap)'),
+    'audio session: ' + ('audioSession' in navigator ? navigator.audioSession.type : 'not supported here'),
+    'pops played: ' + pops,
+    'taps: ' + taps,
+  ].join('\n');
+}, 150);
+setInterval(() => { if (audio.ctx?.state === 'running') { audio.sfx('pop'); pops++; } }, 1500);
+</script>
